@@ -1,0 +1,80 @@
+# Pocketbook – daily income & expense tracker.
+#
+# Everything a family shares lives under one Household. Each signed-in user
+# (Firebase Auth uid) belongs to at most one household through Member, so
+# every connector operation scopes its reads and writes via
+# `member(key: { userId_expr: "auth.uid" })`.
+
+# One row per Firebase Auth account.
+type User @table {
+  id: String! @default(expr: "auth.uid")
+  displayName: String! @col(dataType: "varchar(60)")
+  email: String
+  createdAt: Timestamp! @default(expr: "request.time")
+}
+
+# A shared book of accounts (e.g. husband + wife).
+type Household @table {
+  name: String! @col(dataType: "varchar(60)")
+  # Short code a family member types in to join this household.
+  inviteCode: String! @unique @col(dataType: "varchar(12)")
+  # ISO 4217 code used for display, e.g. LKR, USD.
+  currency: String! @default(value: "LKR")
+  createdAt: Timestamp! @default(expr: "request.time")
+}
+
+# Links a user to their household. Keyed by user: one household per user.
+type Member @table(key: ["user"]) {
+  user: User!
+  household: Household!
+  # OWNER | MEMBER
+  role: String! @default(value: "MEMBER")
+  joinedAt: Timestamp! @default(expr: "request.time")
+}
+
+# How money moves: cash, bank account / transfer, credit card, wallet...
+type PaymentMethod @table {
+  household: Household!
+  name: String! @col(dataType: "varchar(60)")
+  # CASH | BANK | CREDIT_CARD | WALLET | OTHER
+  type: String!
+  # Credit card only.
+  creditLimit: Float
+  lastStatementBalance: Float
+  lastStatementDate: Date
+  paymentDueDate: Date
+  archived: Boolean! @default(value: false)
+  sortOrder: Int! @default(value: 0)
+  createdAt: Timestamp! @default(expr: "request.time")
+}
+
+# Food, Home, Salary, CC Payment, Loan Payment...
+type Category @table {
+  household: Household!
+  name: String! @col(dataType: "varchar(40)")
+  # EXPENSE | INCOME
+  kind: String!
+  icon: String
+  # Marks built-in categories with special behaviour. "CC_PAYMENT" asks
+  # which card is being paid and reduces that card's balance.
+  systemKey: String
+  archived: Boolean! @default(value: false)
+  sortOrder: Int! @default(value: 0)
+}
+
+# A single income or expense entry.
+type Entry @table {
+  household: Household!
+  createdBy: User!
+  # EXPENSE | INCOME
+  kind: String!
+  amount: Float!
+  date: Date!
+  note: String @col(dataType: "varchar(200)")
+  category: Category
+  # Expense: paid with. Income: received into.
+  paymentMethod: PaymentMethod
+  # Set when paying off a credit card (category systemKey CC_PAYMENT).
+  paidCard: PaymentMethod
+  createdAt: Timestamp! @default(expr: "request.time")
+}

@@ -1,0 +1,308 @@
+# Writes are scoped to the caller's household in one of two ways:
+#  - inserts look up the caller's Member row first (@check fails the whole
+#    transaction if they have none) and take householdId from it;
+#  - updates/deletes only match rows whose household has the caller as a
+#    member, so ids from another household simply match nothing.
+
+# ---------------------------------------------------------------- profile
+
+mutation UpsertMe($displayName: String!, $email: String) @auth(level: USER) {
+  user_upsert(
+    data: { id_expr: "auth.uid", displayName: $displayName, email: $email }
+  )
+}
+
+# -------------------------------------------------------------- household
+
+# Creates a household, makes the caller its OWNER and seeds sensible
+# default categories and a Cash payment method.
+mutation CreateHousehold(
+  $name: String!
+  $inviteCode: String!
+  $currency: String!
+) @auth(level: USER) @transaction {
+  household_insert(
+    data: { name: $name, inviteCode: $inviteCode, currency: $currency }
+  )
+  member_upsert(
+    data: {
+      userId_expr: "auth.uid"
+      householdId_expr: "response.household_insert.id"
+      role: "OWNER"
+    }
+  )
+  paymentMethod_insert(
+    data: {
+      householdId_expr: "response.household_insert.id"
+      name: "Cash"
+      type: "CASH"
+      sortOrder: 0
+    }
+  )
+  category_insertMany(
+    data: [
+      { householdId_expr: "response.household_insert.id", name: "Food", kind: "EXPENSE", icon: "🍔", sortOrder: 1 }
+      { householdId_expr: "response.household_insert.id", name: "Groceries", kind: "EXPENSE", icon: "🛒", sortOrder: 2 }
+      { householdId_expr: "response.household_insert.id", name: "Home", kind: "EXPENSE", icon: "🏠", sortOrder: 3 }
+      { householdId_expr: "response.household_insert.id", name: "Bills", kind: "EXPENSE", icon: "💡", sortOrder: 4 }
+      { householdId_expr: "response.household_insert.id", name: "Transport", kind: "EXPENSE", icon: "🚗", sortOrder: 5 }
+      { householdId_expr: "response.household_insert.id", name: "Health", kind: "EXPENSE", icon: "💊", sortOrder: 6 }
+      { householdId_expr: "response.household_insert.id", name: "Shopping", kind: "EXPENSE", icon: "🛍️", sortOrder: 7 }
+      { householdId_expr: "response.household_insert.id", name: "Kids", kind: "EXPENSE", icon: "🧸", sortOrder: 8 }
+      { householdId_expr: "response.household_insert.id", name: "Loan Payment", kind: "EXPENSE", icon: "🏦", sortOrder: 9 }
+      { householdId_expr: "response.household_insert.id", name: "Other", kind: "EXPENSE", icon: "📦", sortOrder: 99 }
+      { householdId_expr: "response.household_insert.id", name: "Salary", kind: "INCOME", icon: "💼", sortOrder: 1 }
+      { householdId_expr: "response.household_insert.id", name: "Business", kind: "INCOME", icon: "📈", sortOrder: 2 }
+      { householdId_expr: "response.household_insert.id", name: "Gift", kind: "INCOME", icon: "🎁", sortOrder: 3 }
+      { householdId_expr: "response.household_insert.id", name: "Other Income", kind: "INCOME", icon: "💰", sortOrder: 99 }
+    ]
+  )
+  category_insert(
+    data: {
+      householdId_expr: "response.household_insert.id"
+      name: "CC Payment"
+      kind: "EXPENSE"
+      icon: "💳"
+      systemKey: "CC_PAYMENT"
+      sortOrder: 10
+    }
+  )
+}
+
+# Join a family member's household with their invite code.
+mutation JoinHousehold($inviteCode: String!) @auth(level: USER) @transaction {
+  query @redact {
+    households(where: { inviteCode: { eq: $inviteCode } }, limit: 1)
+    @check(expr: "this.size() == 1", message: "Invite code not found") {
+      id
+    }
+  }
+  member_upsert(
+    data: {
+      userId_expr: "auth.uid"
+      householdId_expr: "response.query.households[0].id"
+      role: "MEMBER"
+    }
+  )
+}
+
+mutation LeaveHousehold @auth(level: USER) {
+  member_delete(key: { userId_expr: "auth.uid" })
+}
+
+mutation UpdateHousehold($name: String!, $currency: String!)
+@auth(level: USER) {
+  household_updateMany(
+    where: {
+      members_on_household: { exist: { userId: { eq_expr: "auth.uid" } } }
+    }
+    data: { name: $name, currency: $currency }
+  )
+}
+
+# Only an OWNER can remove someone else from the household.
+mutation RemoveMember($userId: String!) @auth(level: USER) {
+  member_deleteMany(
+    where: {
+      userId: { eq: $userId }
+      household: {
+        members_on_household: {
+          exist: { userId: { eq_expr: "auth.uid" }, role: { eq: "OWNER" } }
+        }
+      }
+    }
+  )
+}
+
+# --------------------------------------------------------- payment methods
+
+mutation AddPaymentMethod(
+  $name: String!
+  $type: String!
+  $creditLimit: Float
+  $lastStatementBalance: Float
+  $lastStatementDate: Date
+  $paymentDueDate: Date
+  $sortOrder: Int
+) @auth(level: USER) @transaction {
+  query @redact {
+    member(key: { userId_expr: "auth.uid" })
+    @check(expr: "this != null", message: "Create or join a household first") {
+      householdId
+    }
+  }
+  paymentMethod_insert(
+    data: {
+      householdId_expr: "response.query.member.householdId"
+      name: $name
+      type: $type
+      creditLimit: $creditLimit
+      lastStatementBalance: $lastStatementBalance
+      lastStatementDate: $lastStatementDate
+      paymentDueDate: $paymentDueDate
+      sortOrder: $sortOrder
+    }
+  )
+}
+
+mutation UpdatePaymentMethod(
+  $id: UUID!
+  $name: String!
+  $type: String!
+  $creditLimit: Float
+  $lastStatementBalance: Float
+  $lastStatementDate: Date
+  $paymentDueDate: Date
+) @auth(level: USER) {
+  paymentMethod_updateMany(
+    where: {
+      id: { eq: $id }
+      household: {
+        members_on_household: { exist: { userId: { eq_expr: "auth.uid" } } }
+      }
+    }
+    data: {
+      name: $name
+      type: $type
+      creditLimit: $creditLimit
+      lastStatementBalance: $lastStatementBalance
+      lastStatementDate: $lastStatementDate
+      paymentDueDate: $paymentDueDate
+    }
+  )
+}
+
+# Archived (not deleted) so past entries keep their payment method.
+mutation ArchivePaymentMethod($id: UUID!) @auth(level: USER) {
+  paymentMethod_updateMany(
+    where: {
+      id: { eq: $id }
+      household: {
+        members_on_household: { exist: { userId: { eq_expr: "auth.uid" } } }
+      }
+    }
+    data: { archived: true }
+  )
+}
+
+# -------------------------------------------------------------- categories
+
+mutation AddCategory(
+  $name: String!
+  $kind: String!
+  $icon: String
+  $sortOrder: Int
+) @auth(level: USER) @transaction {
+  query @redact {
+    member(key: { userId_expr: "auth.uid" })
+    @check(expr: "this != null", message: "Create or join a household first") {
+      householdId
+    }
+  }
+  category_insert(
+    data: {
+      householdId_expr: "response.query.member.householdId"
+      name: $name
+      kind: $kind
+      icon: $icon
+      sortOrder: $sortOrder
+    }
+  )
+}
+
+mutation UpdateCategory($id: UUID!, $name: String!, $icon: String)
+@auth(level: USER) {
+  category_updateMany(
+    where: {
+      id: { eq: $id }
+      household: {
+        members_on_household: { exist: { userId: { eq_expr: "auth.uid" } } }
+      }
+    }
+    data: { name: $name, icon: $icon }
+  )
+}
+
+mutation ArchiveCategory($id: UUID!) @auth(level: USER) {
+  category_updateMany(
+    where: {
+      id: { eq: $id }
+      household: {
+        members_on_household: { exist: { userId: { eq_expr: "auth.uid" } } }
+      }
+    }
+    data: { archived: true }
+  )
+}
+
+# ----------------------------------------------------------------- entries
+
+mutation AddEntry(
+  $kind: String!
+  $amount: Float!
+  $date: Date!
+  $note: String
+  $categoryId: UUID
+  $paymentMethodId: UUID
+  $paidCardId: UUID
+) @auth(level: USER) @transaction {
+  query @redact {
+    member(key: { userId_expr: "auth.uid" })
+    @check(expr: "this != null", message: "Create or join a household first") {
+      householdId
+    }
+  }
+  entry_insert(
+    data: {
+      householdId_expr: "response.query.member.householdId"
+      createdById_expr: "auth.uid"
+      kind: $kind
+      amount: $amount
+      date: $date
+      note: $note
+      categoryId: $categoryId
+      paymentMethodId: $paymentMethodId
+      paidCardId: $paidCardId
+    }
+  )
+}
+
+mutation UpdateEntry(
+  $id: UUID!
+  $kind: String!
+  $amount: Float!
+  $date: Date!
+  $note: String
+  $categoryId: UUID
+  $paymentMethodId: UUID
+  $paidCardId: UUID
+) @auth(level: USER) {
+  entry_updateMany(
+    where: {
+      id: { eq: $id }
+      household: {
+        members_on_household: { exist: { userId: { eq_expr: "auth.uid" } } }
+      }
+    }
+    data: {
+      kind: $kind
+      amount: $amount
+      date: $date
+      note: $note
+      categoryId: $categoryId
+      paymentMethodId: $paymentMethodId
+      paidCardId: $paidCardId
+    }
+  )
+}
+
+mutation DeleteEntry($id: UUID!) @auth(level: USER) {
+  entry_deleteMany(
+    where: {
+      id: { eq: $id }
+      household: {
+        members_on_household: { exist: { userId: { eq_expr: "auth.uid" } } }
+      }
+    }
+  )
+}

@@ -1,0 +1,120 @@
+# Every query starts from the caller's own Member row, so a user can only
+# ever see data of the household they belong to.
+
+# Profile + household + lookups the app needs on start-up.
+query GetMyHome @auth(level: USER) {
+  user(key: { id_expr: "auth.uid" }) {
+    id
+    displayName
+    email
+  }
+  member(key: { userId_expr: "auth.uid" }) {
+    role
+    household {
+      id
+      name
+      inviteCode
+      currency
+      members: members_on_household(orderBy: [{ joinedAt: ASC }]) {
+        role
+        user {
+          id
+          displayName
+          email
+        }
+      }
+      paymentMethods: paymentMethods_on_household(
+        where: { archived: { eq: false } }
+        orderBy: [{ sortOrder: ASC }, { createdAt: ASC }]
+      ) {
+        id
+        name
+        type
+        creditLimit
+        lastStatementBalance
+        lastStatementDate
+        paymentDueDate
+      }
+      categories: categories_on_household(
+        where: { archived: { eq: false } }
+        orderBy: [{ sortOrder: ASC }, { name: ASC }]
+      ) {
+        id
+        name
+        kind
+        icon
+        systemKey
+      }
+    }
+  }
+}
+
+# Entries between two dates (inclusive), newest first.
+query ListEntries($from: Date!, $to: Date!, $limit: Int = 500)
+@auth(level: USER) {
+  member(key: { userId_expr: "auth.uid" }) {
+    household {
+      entries: entries_on_household(
+        where: { date: { ge: $from, le: $to } }
+        orderBy: [{ date: DESC }, { createdAt: DESC }]
+        limit: $limit
+      ) {
+        id
+        kind
+        amount
+        date
+        note
+        createdAt
+        category {
+          id
+          name
+          icon
+          systemKey
+        }
+        paymentMethod {
+          id
+          name
+          type
+        }
+        paidCard {
+          id
+          name
+        }
+        createdBy {
+          id
+          displayName
+        }
+      }
+    }
+  }
+}
+
+# Card activity since a date: used to work out each card's current balance
+# (last statement balance + new charges - payments since the statement).
+query CardActivity($since: Date!) @auth(level: USER) {
+  member(key: { userId_expr: "auth.uid" }) {
+    household {
+      cards: paymentMethods_on_household(
+        where: { type: { eq: "CREDIT_CARD" }, archived: { eq: false } }
+      ) {
+        id
+        charges: entries_on_paymentMethod(
+          where: { kind: { eq: "EXPENSE" }, date: { ge: $since } }
+        ) {
+          amount
+          date
+        }
+        refunds: entries_on_paymentMethod(
+          where: { kind: { eq: "INCOME" }, date: { ge: $since } }
+        ) {
+          amount
+          date
+        }
+        payments: entries_on_paidCard(where: { date: { ge: $since } }) {
+          amount
+          date
+        }
+      }
+    }
+  }
+}

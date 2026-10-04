@@ -1,0 +1,12 @@
+specVersion: "v1"
+serviceId: "pocketbook"
+location: "us-central1"
+schema:
+  source: "./schema"
+  datasource:
+    postgresql:
+      database: "pocketbook-db"
+      cloudSql:
+        instanceId: "pocketbook-fdc"
+        # schemaValidation: "COMPATIBLE"
+connectorDirs: ["./connector"]
