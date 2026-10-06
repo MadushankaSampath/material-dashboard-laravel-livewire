@@ -12,6 +12,27 @@ import { errorMessage } from '../lib/format'
 
 type Mode = 'signin' | 'signup' | 'reset'
 
+/** Friendly text for Firebase Auth error codes; anything else falls back to the raw message. */
+const AUTH_ERRORS: Record<string, string> = {
+  'auth/invalid-credential': 'Invalid email or password. Please try again, or sign up to create a new account.',
+  'auth/wrong-password': 'Invalid email or password. Please try again, or sign up to create a new account.',
+  'auth/user-not-found': 'Invalid email or password. Please try again, or sign up to create a new account.',
+  'auth/invalid-email': 'That email address doesn’t look right.',
+  'auth/missing-password': 'Enter your password.',
+  'auth/email-already-in-use': 'An account with this email already exists. Sign in instead, or reset your password.',
+  'auth/weak-password': 'Password must be at least 6 characters.',
+  'auth/too-many-requests': 'Too many attempts. Please wait a minute and try again.',
+  'auth/network-request-failed': 'No internet connection. Check your network and try again.',
+  'auth/popup-blocked': 'The sign-in popup was blocked. Allow popups for this site and try again.',
+}
+
+function authErrorMessage(e: unknown): string | null {
+  const code = (e as { code?: string })?.code
+  // The user just closed the Google popup — nothing to report.
+  if (code === 'auth/popup-closed-by-user' || code === 'auth/cancelled-popup-request') return null
+  return (code && AUTH_ERRORS[code]) || errorMessage(e)
+}
+
 export default function AuthPage() {
   const [mode, setMode] = useState<Mode>('signin')
   const [name, setName] = useState('')
@@ -28,7 +49,7 @@ export default function AuthPage() {
     try {
       await fn()
     } catch (e) {
-      setError(errorMessage(e))
+      setError(authErrorMessage(e))
     } finally {
       setBusy(false)
     }
