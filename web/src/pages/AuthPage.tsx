@@ -117,6 +117,11 @@ export default function AuthPage() {
           {mode === 'reset' ? 'Back to sign in' : 'Forgot password?'}
         </button>
       </form>
+
+      <footer className="app-version">
+        Pocketbook v{__APP_VERSION__}
+        {__APP_COMMIT__ && ` · ${__APP_COMMIT__}`} · {__APP_BUILD_DATE__}
+      </footer>
     </div>
   )
 }
