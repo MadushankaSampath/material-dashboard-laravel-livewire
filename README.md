@@ -85,13 +85,12 @@ Prerequisites: Node 20+ and the Firebase CLI (`npm i -g firebase-tools`).
 
 1. Create a Firebase project on the **Blaze** plan, which SQL Connect needs for Cloud SQL.
 2. Turn on **Authentication** and enable the **Email/Password** and **Google** providers.
-3. Put the project id in `.firebaserc`, and adjust `serviceId`, `location`, `instanceId` and `database` in `dataconnect/dataconnect.yaml` if you want different names.
+3. Put the project id in `.firebaserc`, and set `location`, `instanceId` and `database` in `dataconnect/dataconnect.yaml` to your Cloud SQL instance. After changing `serviceId` or `location`, run `firebase dataconnect:sdk:generate`.
 4. Register a web app, then copy `web/.env.example` to `web/.env.local` and fill in its config values.
 
 ```bash
-cd web && npm install && cd ..
 firebase deploy --only dataconnect   # creates Cloud SQL instance, migrates schema, deploys connector
-firebase deploy --only hosting       # builds web/ and deploys
+firebase deploy --only hosting       # installs + builds web/ and deploys
 ```
 
 Also add your hosting domain under **Auth → Settings → Authorized domains**.

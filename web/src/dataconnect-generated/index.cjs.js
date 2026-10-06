@@ -2,8 +2,8 @@ const { queryRef, executeQuery, validateArgsWithOptions, mutationRef, executeMut
 
 const connectorConfig = {
   connector: 'pocketbook',
-  service: 'pocketbook',
-  location: 'us-central1'
+  service: 'salary-manager-a366e-service',
+  location: 'us-east4'
 };
 exports.connectorConfig = connectorConfig;
 

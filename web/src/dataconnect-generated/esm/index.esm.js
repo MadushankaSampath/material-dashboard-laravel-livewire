@@ -2,8 +2,8 @@ import { queryRef, executeQuery, validateArgsWithOptions, mutationRef, executeMu
 
 export const connectorConfig = {
   connector: 'pocketbook',
-  service: 'pocketbook',
-  location: 'us-central1'
+  service: 'salary-manager-a366e-service',
+  location: 'us-east4'
 };
 export const upsertMeRef = (dcOrVars, vars) => {
   const { dc: dcInstance, vars: inputVars} = validateArgs(connectorConfig, dcOrVars, vars, true);
