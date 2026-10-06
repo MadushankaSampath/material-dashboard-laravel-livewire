@@ -22,7 +22,12 @@ export default function Onboarding() {
       await fn()
       await refreshHome()
     } catch (e) {
-      setError(errorMessage(e))
+      const msg = errorMessage(e)
+      setError(
+        msg === 'Invite code not found'
+          ? 'Invalid household code. Check the code, or click Create to start a new household.'
+          : msg,
+      )
     } finally {
       setBusy(false)
     }
