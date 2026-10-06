@@ -2,6 +2,7 @@ import type { GetMyHomeData, ListEntriesData } from '@pocketbook/dataconnect'
 
 export type Household = NonNullable<GetMyHomeData['member']>['household']
 export type PaymentMethod = Household['paymentMethods'][number]
+export type InstallmentPlan = PaymentMethod['installmentPlans'][number]
 export type Category = Household['categories'][number]
 export type Member = Household['members'][number]
 export type Entry = NonNullable<ListEntriesData['member']>['household']['entries'][number]

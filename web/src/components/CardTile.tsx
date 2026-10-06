@@ -2,7 +2,7 @@ import type { CardStatus } from '../lib/cards'
 import { money, shortDate } from '../lib/format'
 
 export default function CardTile({ status, currency, onClick }: { status: CardStatus; currency: string; onClick?: () => void }) {
-  const { card, available, balance, limit, utilisation } = status
+  const { card, available, balance, blocked, limit, utilisation } = status
   const level = utilisation > 0.8 ? 'high' : utilisation > 0.5 ? 'mid' : 'low'
   return (
     <button type="button" className="cc" onClick={onClick}>
@@ -19,6 +19,11 @@ export default function CardTile({ status, currency, onClick }: { status: CardSt
         <span>Balance {money(balance, currency)}</span>
         <span>Statement {money(card.lastStatementBalance ?? 0, currency)}</span>
       </div>
+      {blocked > 0 && (
+        <div className="cc-foot">
+          <span>Blocked for instalments {money(blocked, currency)}</span>
+        </div>
+      )}
     </button>
   )
 }

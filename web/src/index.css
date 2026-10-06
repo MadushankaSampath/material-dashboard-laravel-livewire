@@ -767,3 +767,35 @@ select:focus {
     opacity: 0;
   }
 }
+
+/* ---------- instalment plans ---------- */
+
+.plans {
+  border-top: 1px solid var(--border);
+  padding-top: 12px;
+}
+.plans .section-head {
+  margin-bottom: 0;
+}
+.plan {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+}
+.plan.done {
+  opacity: 0.6;
+}
+.plan-amount {
+  text-align: right;
+  white-space: nowrap;
+}
+.card-inset {
+  background: var(--bg);
+  border-radius: 12px;
+  padding: 12px;
+}
+.card-inset input {
+  background: var(--surface);
+}

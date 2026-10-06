@@ -38,6 +38,7 @@ firebase.json           Hosting (SPA rewrite) + Data Connect + emulators
 | `Member` | Links a user to a household (OWNER / MEMBER). Keyed by user, so each user has one household |
 | `PaymentMethod` | Cash / Bank / Credit card / Wallet / Other. Card fields: limit, last statement balance and date, due date |
 | `Category` | Expense or income category. `systemKey = CC_PAYMENT` marks a credit-card payment |
+| `InstallmentPlan` | 0% instalment (EPP) purchase on a card: total, months, purchase date |
 | `Entry` | One income or expense: amount, date, note, category, payment method, `paidCard` (for CC payments) and `createdBy` |
 
 ### Credit-card maths
@@ -47,8 +48,11 @@ balance   = last statement balance
           + card purchases dated after the statement date
           − refunds to the card after the statement date
           − CC Payment entries for the card after the statement date
-available = limit − balance
+blocked   = Σ unbilled part of each instalment plan on the card
+available = limit − balance − blocked
 ```
+
+An instalment plan blocks its full amount when you buy. One monthly instalment is then billed on each statement after the purchase date (statements fall on the card's last statement day). Billed instalments are part of the statement balance you enter, so only the unbilled rest stays blocked. Don't also add the purchase as a card expense, or it will be counted twice.
 
 A **CC Payment** is an expense paid *from* a bank account or cash *to* a card. It reduces the card's balance. Monthly "Spent" totals leave it out so purchases aren't counted twice, and it is shown on its own line.
 

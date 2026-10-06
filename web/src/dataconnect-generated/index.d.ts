@@ -35,6 +35,18 @@ export interface AddEntryVariables {
   paidCardId?: UUIDString | null;
 }
 
+export interface AddInstallmentPlanData {
+  installmentPlan_insert: InstallmentPlan_Key;
+}
+
+export interface AddInstallmentPlanVariables {
+  cardId: UUIDString;
+  description: string;
+  totalAmount: number;
+  months: number;
+  startDate: DateString;
+}
+
 export interface AddPaymentMethodData {
   paymentMethod_insert: PaymentMethod_Key;
 }
@@ -118,6 +130,14 @@ export interface DeleteEntryVariables {
   id: UUIDString;
 }
 
+export interface DeleteInstallmentPlanData {
+  installmentPlan_deleteMany: number;
+}
+
+export interface DeleteInstallmentPlanVariables {
+  id: UUIDString;
+}
+
 export interface Entry_Key {
   id: UUIDString;
   __typename?: 'Entry_Key';
@@ -152,6 +172,13 @@ export interface GetMyHomeData {
         lastStatementBalance?: number | null;
         lastStatementDate?: DateString | null;
         paymentDueDate?: DateString | null;
+        installmentPlans: ({
+          id: UUIDString;
+          description: string;
+          totalAmount: number;
+          months: number;
+          startDate: DateString;
+        } & InstallmentPlan_Key)[];
       } & PaymentMethod_Key)[];
       categories: ({
         id: UUIDString;
@@ -167,6 +194,11 @@ export interface GetMyHomeData {
 export interface Household_Key {
   id: UUIDString;
   __typename?: 'Household_Key';
+}
+
+export interface InstallmentPlan_Key {
+  id: UUIDString;
+  __typename?: 'InstallmentPlan_Key';
 }
 
 export interface JoinHouseholdData {
@@ -271,6 +303,18 @@ export interface UpdateHouseholdData {
 export interface UpdateHouseholdVariables {
   name: string;
   currency: string;
+}
+
+export interface UpdateInstallmentPlanData {
+  installmentPlan_updateMany: number;
+}
+
+export interface UpdateInstallmentPlanVariables {
+  id: UUIDString;
+  description: string;
+  totalAmount: number;
+  months: number;
+  startDate: DateString;
 }
 
 export interface UpdatePaymentMethodData {
@@ -480,6 +524,42 @@ export const deleteEntryRef: DeleteEntryRef;
 
 export function deleteEntry(vars: DeleteEntryVariables): MutationPromise<DeleteEntryData, DeleteEntryVariables>;
 export function deleteEntry(dc: DataConnect, vars: DeleteEntryVariables): MutationPromise<DeleteEntryData, DeleteEntryVariables>;
+
+interface AddInstallmentPlanRef {
+  /* Allow users to create refs without passing in DataConnect */
+  (vars: AddInstallmentPlanVariables): MutationRef<AddInstallmentPlanData, AddInstallmentPlanVariables>;
+  /* Allow users to pass in custom DataConnect instances */
+  (dc: DataConnect, vars: AddInstallmentPlanVariables): MutationRef<AddInstallmentPlanData, AddInstallmentPlanVariables>;
+  operationName: string;
+}
+export const addInstallmentPlanRef: AddInstallmentPlanRef;
+
+export function addInstallmentPlan(vars: AddInstallmentPlanVariables): MutationPromise<AddInstallmentPlanData, AddInstallmentPlanVariables>;
+export function addInstallmentPlan(dc: DataConnect, vars: AddInstallmentPlanVariables): MutationPromise<AddInstallmentPlanData, AddInstallmentPlanVariables>;
+
+interface UpdateInstallmentPlanRef {
+  /* Allow users to create refs without passing in DataConnect */
+  (vars: UpdateInstallmentPlanVariables): MutationRef<UpdateInstallmentPlanData, UpdateInstallmentPlanVariables>;
+  /* Allow users to pass in custom DataConnect instances */
+  (dc: DataConnect, vars: UpdateInstallmentPlanVariables): MutationRef<UpdateInstallmentPlanData, UpdateInstallmentPlanVariables>;
+  operationName: string;
+}
+export const updateInstallmentPlanRef: UpdateInstallmentPlanRef;
+
+export function updateInstallmentPlan(vars: UpdateInstallmentPlanVariables): MutationPromise<UpdateInstallmentPlanData, UpdateInstallmentPlanVariables>;
+export function updateInstallmentPlan(dc: DataConnect, vars: UpdateInstallmentPlanVariables): MutationPromise<UpdateInstallmentPlanData, UpdateInstallmentPlanVariables>;
+
+interface DeleteInstallmentPlanRef {
+  /* Allow users to create refs without passing in DataConnect */
+  (vars: DeleteInstallmentPlanVariables): MutationRef<DeleteInstallmentPlanData, DeleteInstallmentPlanVariables>;
+  /* Allow users to pass in custom DataConnect instances */
+  (dc: DataConnect, vars: DeleteInstallmentPlanVariables): MutationRef<DeleteInstallmentPlanData, DeleteInstallmentPlanVariables>;
+  operationName: string;
+}
+export const deleteInstallmentPlanRef: DeleteInstallmentPlanRef;
+
+export function deleteInstallmentPlan(vars: DeleteInstallmentPlanVariables): MutationPromise<DeleteInstallmentPlanData, DeleteInstallmentPlanVariables>;
+export function deleteInstallmentPlan(dc: DataConnect, vars: DeleteInstallmentPlanVariables): MutationPromise<DeleteInstallmentPlanData, DeleteInstallmentPlanVariables>;
 
 interface GetMyHomeRef {
   /* Allow users to create refs without passing in DataConnect */

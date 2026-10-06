@@ -217,6 +217,48 @@ exports.deleteEntry = function deleteEntry(dcOrVars, vars) {
 }
 ;
 
+const addInstallmentPlanRef = (dcOrVars, vars) => {
+  const { dc: dcInstance, vars: inputVars} = validateArgs(connectorConfig, dcOrVars, vars, true);
+  dcInstance._useGeneratedSdk();
+  return mutationRef(dcInstance, 'AddInstallmentPlan', inputVars);
+}
+addInstallmentPlanRef.operationName = 'AddInstallmentPlan';
+exports.addInstallmentPlanRef = addInstallmentPlanRef;
+
+exports.addInstallmentPlan = function addInstallmentPlan(dcOrVars, vars) {
+  const { dc: dcInstance, vars: inputVars } = validateArgs(connectorConfig, dcOrVars, vars, true);
+  return executeMutation(addInstallmentPlanRef(dcInstance, inputVars));
+}
+;
+
+const updateInstallmentPlanRef = (dcOrVars, vars) => {
+  const { dc: dcInstance, vars: inputVars} = validateArgs(connectorConfig, dcOrVars, vars, true);
+  dcInstance._useGeneratedSdk();
+  return mutationRef(dcInstance, 'UpdateInstallmentPlan', inputVars);
+}
+updateInstallmentPlanRef.operationName = 'UpdateInstallmentPlan';
+exports.updateInstallmentPlanRef = updateInstallmentPlanRef;
+
+exports.updateInstallmentPlan = function updateInstallmentPlan(dcOrVars, vars) {
+  const { dc: dcInstance, vars: inputVars } = validateArgs(connectorConfig, dcOrVars, vars, true);
+  return executeMutation(updateInstallmentPlanRef(dcInstance, inputVars));
+}
+;
+
+const deleteInstallmentPlanRef = (dcOrVars, vars) => {
+  const { dc: dcInstance, vars: inputVars} = validateArgs(connectorConfig, dcOrVars, vars, true);
+  dcInstance._useGeneratedSdk();
+  return mutationRef(dcInstance, 'DeleteInstallmentPlan', inputVars);
+}
+deleteInstallmentPlanRef.operationName = 'DeleteInstallmentPlan';
+exports.deleteInstallmentPlanRef = deleteInstallmentPlanRef;
+
+exports.deleteInstallmentPlan = function deleteInstallmentPlan(dcOrVars, vars) {
+  const { dc: dcInstance, vars: inputVars } = validateArgs(connectorConfig, dcOrVars, vars, true);
+  return executeMutation(deleteInstallmentPlanRef(dcInstance, inputVars));
+}
+;
+
 const getMyHomeRef = (dc) => {
   const { dc: dcInstance} = validateArgs(connectorConfig, dc, undefined);
   dcInstance._useGeneratedSdk();

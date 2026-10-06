@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { addPaymentMethod, archivePaymentMethod, updatePaymentMethod } from '@pocketbook/dataconnect'
 import CardTile from '../components/CardTile'
+import InstallmentPlans from '../components/InstallmentPlans'
 import { dc } from '../firebase'
 import { activitySince, cardStatuses } from '../lib/cards'
 import { errorMessage } from '../lib/format'
@@ -60,8 +61,9 @@ export default function CardsPage() {
       </section>
 
       <p className="muted small">
-        Card balance = last statement balance + purchases since the statement date − payments and refunds since. Update
-        the statement each month to keep it accurate.
+        Card balance = last statement balance + purchases since the statement date − payments and refunds since.
+        Available = limit − balance − amounts blocked by instalment plans. Update the statement each month to keep it
+        accurate.
       </p>
 
       {editing && <MethodForm method={editing === 'new' ? undefined : editing} onClose={() => setEditing(null)} />}
@@ -169,6 +171,7 @@ function MethodForm({ method, onClose }: { method?: PaymentMethod; onClose: () =
                 <input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
               </label>
             </div>
+            {method?.type === 'CREDIT_CARD' && <InstallmentPlans cardId={method.id} />}
           </>
         )}
         {error && <p className="error">{error}</p>}

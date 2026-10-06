@@ -34,6 +34,13 @@ query GetMyHome @auth(level: USER) {
         lastStatementBalance
         lastStatementDate
         paymentDueDate
+        installmentPlans: installmentPlans_on_card(orderBy: [{ startDate: ASC }]) {
+          id
+          description
+          totalAmount
+          months
+          startDate
+        }
       }
       categories: categories_on_household(
         where: { archived: { eq: false } }

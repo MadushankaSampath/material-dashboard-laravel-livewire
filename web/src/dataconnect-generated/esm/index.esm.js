@@ -185,6 +185,42 @@ export function deleteEntry(dcOrVars, vars) {
   return executeMutation(deleteEntryRef(dcInstance, inputVars));
 }
 
+export const addInstallmentPlanRef = (dcOrVars, vars) => {
+  const { dc: dcInstance, vars: inputVars} = validateArgs(connectorConfig, dcOrVars, vars, true);
+  dcInstance._useGeneratedSdk();
+  return mutationRef(dcInstance, 'AddInstallmentPlan', inputVars);
+}
+addInstallmentPlanRef.operationName = 'AddInstallmentPlan';
+
+export function addInstallmentPlan(dcOrVars, vars) {
+  const { dc: dcInstance, vars: inputVars } = validateArgs(connectorConfig, dcOrVars, vars, true);
+  return executeMutation(addInstallmentPlanRef(dcInstance, inputVars));
+}
+
+export const updateInstallmentPlanRef = (dcOrVars, vars) => {
+  const { dc: dcInstance, vars: inputVars} = validateArgs(connectorConfig, dcOrVars, vars, true);
+  dcInstance._useGeneratedSdk();
+  return mutationRef(dcInstance, 'UpdateInstallmentPlan', inputVars);
+}
+updateInstallmentPlanRef.operationName = 'UpdateInstallmentPlan';
+
+export function updateInstallmentPlan(dcOrVars, vars) {
+  const { dc: dcInstance, vars: inputVars } = validateArgs(connectorConfig, dcOrVars, vars, true);
+  return executeMutation(updateInstallmentPlanRef(dcInstance, inputVars));
+}
+
+export const deleteInstallmentPlanRef = (dcOrVars, vars) => {
+  const { dc: dcInstance, vars: inputVars} = validateArgs(connectorConfig, dcOrVars, vars, true);
+  dcInstance._useGeneratedSdk();
+  return mutationRef(dcInstance, 'DeleteInstallmentPlan', inputVars);
+}
+deleteInstallmentPlanRef.operationName = 'DeleteInstallmentPlan';
+
+export function deleteInstallmentPlan(dcOrVars, vars) {
+  const { dc: dcInstance, vars: inputVars } = validateArgs(connectorConfig, dcOrVars, vars, true);
+  return executeMutation(deleteInstallmentPlanRef(dcInstance, inputVars));
+}
+
 export const getMyHomeRef = (dc) => {
   const { dc: dcInstance} = validateArgs(connectorConfig, dc, undefined);
   dcInstance._useGeneratedSdk();

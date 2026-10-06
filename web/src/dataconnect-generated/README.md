@@ -27,6 +27,9 @@ This README will guide you through the process of using the generated JavaScript
   - [*AddEntry*](#addentry)
   - [*UpdateEntry*](#updateentry)
   - [*DeleteEntry*](#deleteentry)
+  - [*AddInstallmentPlan*](#addinstallmentplan)
+  - [*UpdateInstallmentPlan*](#updateinstallmentplan)
+  - [*DeleteInstallmentPlan*](#deleteinstallmentplan)
 
 # Accessing the connector
 A connector is a collection of Queries and Mutations. One SDK is generated for each connector - this SDK is generated for the connector `pocketbook`. You can find more information about connectors in the [Data Connect documentation](https://firebase.google.com/docs/data-connect#how-does).
@@ -138,6 +141,13 @@ export interface GetMyHomeData {
         lastStatementBalance?: number | null;
         lastStatementDate?: DateString | null;
         paymentDueDate?: DateString | null;
+        installmentPlans: ({
+          id: UUIDString;
+          description: string;
+          totalAmount: number;
+          months: number;
+          startDate: DateString;
+        } & InstallmentPlan_Key)[];
       } & PaymentMethod_Key)[];
       categories: ({
         id: UUIDString;
@@ -2228,6 +2238,357 @@ console.log(data.entry_deleteMany);
 executeMutation(ref).then((response) => {
   const data = response.data;
   console.log(data.entry_deleteMany);
+});
+```
+
+## AddInstallmentPlan
+You can execute the `AddInstallmentPlan` mutation using the following action shortcut function, or by calling `executeMutation()` after calling the following `MutationRef` function, both of which are defined in [dataconnect-generated/index.d.ts](./index.d.ts):
+```typescript
+addInstallmentPlan(vars: AddInstallmentPlanVariables): MutationPromise<AddInstallmentPlanData, AddInstallmentPlanVariables>;
+
+interface AddInstallmentPlanRef {
+  ...
+  /* Allow users to create refs without passing in DataConnect */
+  (vars: AddInstallmentPlanVariables): MutationRef<AddInstallmentPlanData, AddInstallmentPlanVariables>;
+}
+export const addInstallmentPlanRef: AddInstallmentPlanRef;
+```
+You can also pass in a `DataConnect` instance to the action shortcut function or `MutationRef` function.
+```typescript
+addInstallmentPlan(dc: DataConnect, vars: AddInstallmentPlanVariables): MutationPromise<AddInstallmentPlanData, AddInstallmentPlanVariables>;
+
+interface AddInstallmentPlanRef {
+  ...
+  (dc: DataConnect, vars: AddInstallmentPlanVariables): MutationRef<AddInstallmentPlanData, AddInstallmentPlanVariables>;
+}
+export const addInstallmentPlanRef: AddInstallmentPlanRef;
+```
+
+If you need the name of the operation without creating a ref, you can retrieve the operation name by calling the `operationName` property on the addInstallmentPlanRef:
+```typescript
+const name = addInstallmentPlanRef.operationName;
+console.log(name);
+```
+
+### Variables
+The `AddInstallmentPlan` mutation requires an argument of type `AddInstallmentPlanVariables`, which is defined in [dataconnect-generated/index.d.ts](./index.d.ts). It has the following fields:
+
+```typescript
+export interface AddInstallmentPlanVariables {
+  cardId: UUIDString;
+  description: string;
+  totalAmount: number;
+  months: number;
+  startDate: DateString;
+}
+```
+### Return Type
+Recall that executing the `AddInstallmentPlan` mutation returns a `MutationPromise` that resolves to an object with a `data` property.
+
+The `data` property is an object of type `AddInstallmentPlanData`, which is defined in [dataconnect-generated/index.d.ts](./index.d.ts). It has the following fields:
+```typescript
+export interface AddInstallmentPlanData {
+  installmentPlan_insert: InstallmentPlan_Key;
+}
+```
+### Using `AddInstallmentPlan`'s action shortcut function
+
+```typescript
+import { getDataConnect } from 'firebase/data-connect';
+import { connectorConfig, addInstallmentPlan, AddInstallmentPlanVariables } from '@pocketbook/dataconnect';
+
+// The `AddInstallmentPlan` mutation requires an argument of type `AddInstallmentPlanVariables`:
+const addInstallmentPlanVars: AddInstallmentPlanVariables = {
+  cardId: ..., 
+  description: ..., 
+  totalAmount: ..., 
+  months: ..., 
+  startDate: ..., 
+};
+
+// Call the `addInstallmentPlan()` function to execute the mutation.
+// You can use the `await` keyword to wait for the promise to resolve.
+const { data } = await addInstallmentPlan(addInstallmentPlanVars);
+// Variables can be defined inline as well.
+const { data } = await addInstallmentPlan({ cardId: ..., description: ..., totalAmount: ..., months: ..., startDate: ..., });
+
+// You can also pass in a `DataConnect` instance to the action shortcut function.
+const dataConnect = getDataConnect(connectorConfig);
+const { data } = await addInstallmentPlan(dataConnect, addInstallmentPlanVars);
+
+console.log(data.installmentPlan_insert);
+
+// Or, you can use the `Promise` API.
+addInstallmentPlan(addInstallmentPlanVars).then((response) => {
+  const data = response.data;
+  console.log(data.installmentPlan_insert);
+});
+```
+
+### Using `AddInstallmentPlan`'s `MutationRef` function
+
+```typescript
+import { getDataConnect, executeMutation } from 'firebase/data-connect';
+import { connectorConfig, addInstallmentPlanRef, AddInstallmentPlanVariables } from '@pocketbook/dataconnect';
+
+// The `AddInstallmentPlan` mutation requires an argument of type `AddInstallmentPlanVariables`:
+const addInstallmentPlanVars: AddInstallmentPlanVariables = {
+  cardId: ..., 
+  description: ..., 
+  totalAmount: ..., 
+  months: ..., 
+  startDate: ..., 
+};
+
+// Call the `addInstallmentPlanRef()` function to get a reference to the mutation.
+const ref = addInstallmentPlanRef(addInstallmentPlanVars);
+// Variables can be defined inline as well.
+const ref = addInstallmentPlanRef({ cardId: ..., description: ..., totalAmount: ..., months: ..., startDate: ..., });
+
+// You can also pass in a `DataConnect` instance to the `MutationRef` function.
+const dataConnect = getDataConnect(connectorConfig);
+const ref = addInstallmentPlanRef(dataConnect, addInstallmentPlanVars);
+
+// Call `executeMutation()` on the reference to execute the mutation.
+// You can use the `await` keyword to wait for the promise to resolve.
+const { data } = await executeMutation(ref);
+
+console.log(data.installmentPlan_insert);
+
+// Or, you can use the `Promise` API.
+executeMutation(ref).then((response) => {
+  const data = response.data;
+  console.log(data.installmentPlan_insert);
+});
+```
+
+## UpdateInstallmentPlan
+You can execute the `UpdateInstallmentPlan` mutation using the following action shortcut function, or by calling `executeMutation()` after calling the following `MutationRef` function, both of which are defined in [dataconnect-generated/index.d.ts](./index.d.ts):
+```typescript
+updateInstallmentPlan(vars: UpdateInstallmentPlanVariables): MutationPromise<UpdateInstallmentPlanData, UpdateInstallmentPlanVariables>;
+
+interface UpdateInstallmentPlanRef {
+  ...
+  /* Allow users to create refs without passing in DataConnect */
+  (vars: UpdateInstallmentPlanVariables): MutationRef<UpdateInstallmentPlanData, UpdateInstallmentPlanVariables>;
+}
+export const updateInstallmentPlanRef: UpdateInstallmentPlanRef;
+```
+You can also pass in a `DataConnect` instance to the action shortcut function or `MutationRef` function.
+```typescript
+updateInstallmentPlan(dc: DataConnect, vars: UpdateInstallmentPlanVariables): MutationPromise<UpdateInstallmentPlanData, UpdateInstallmentPlanVariables>;
+
+interface UpdateInstallmentPlanRef {
+  ...
+  (dc: DataConnect, vars: UpdateInstallmentPlanVariables): MutationRef<UpdateInstallmentPlanData, UpdateInstallmentPlanVariables>;
+}
+export const updateInstallmentPlanRef: UpdateInstallmentPlanRef;
+```
+
+If you need the name of the operation without creating a ref, you can retrieve the operation name by calling the `operationName` property on the updateInstallmentPlanRef:
+```typescript
+const name = updateInstallmentPlanRef.operationName;
+console.log(name);
+```
+
+### Variables
+The `UpdateInstallmentPlan` mutation requires an argument of type `UpdateInstallmentPlanVariables`, which is defined in [dataconnect-generated/index.d.ts](./index.d.ts). It has the following fields:
+
+```typescript
+export interface UpdateInstallmentPlanVariables {
+  id: UUIDString;
+  description: string;
+  totalAmount: number;
+  months: number;
+  startDate: DateString;
+}
+```
+### Return Type
+Recall that executing the `UpdateInstallmentPlan` mutation returns a `MutationPromise` that resolves to an object with a `data` property.
+
+The `data` property is an object of type `UpdateInstallmentPlanData`, which is defined in [dataconnect-generated/index.d.ts](./index.d.ts). It has the following fields:
+```typescript
+export interface UpdateInstallmentPlanData {
+  installmentPlan_updateMany: number;
+}
+```
+### Using `UpdateInstallmentPlan`'s action shortcut function
+
+```typescript
+import { getDataConnect } from 'firebase/data-connect';
+import { connectorConfig, updateInstallmentPlan, UpdateInstallmentPlanVariables } from '@pocketbook/dataconnect';
+
+// The `UpdateInstallmentPlan` mutation requires an argument of type `UpdateInstallmentPlanVariables`:
+const updateInstallmentPlanVars: UpdateInstallmentPlanVariables = {
+  id: ..., 
+  description: ..., 
+  totalAmount: ..., 
+  months: ..., 
+  startDate: ..., 
+};
+
+// Call the `updateInstallmentPlan()` function to execute the mutation.
+// You can use the `await` keyword to wait for the promise to resolve.
+const { data } = await updateInstallmentPlan(updateInstallmentPlanVars);
+// Variables can be defined inline as well.
+const { data } = await updateInstallmentPlan({ id: ..., description: ..., totalAmount: ..., months: ..., startDate: ..., });
+
+// You can also pass in a `DataConnect` instance to the action shortcut function.
+const dataConnect = getDataConnect(connectorConfig);
+const { data } = await updateInstallmentPlan(dataConnect, updateInstallmentPlanVars);
+
+console.log(data.installmentPlan_updateMany);
+
+// Or, you can use the `Promise` API.
+updateInstallmentPlan(updateInstallmentPlanVars).then((response) => {
+  const data = response.data;
+  console.log(data.installmentPlan_updateMany);
+});
+```
+
+### Using `UpdateInstallmentPlan`'s `MutationRef` function
+
+```typescript
+import { getDataConnect, executeMutation } from 'firebase/data-connect';
+import { connectorConfig, updateInstallmentPlanRef, UpdateInstallmentPlanVariables } from '@pocketbook/dataconnect';
+
+// The `UpdateInstallmentPlan` mutation requires an argument of type `UpdateInstallmentPlanVariables`:
+const updateInstallmentPlanVars: UpdateInstallmentPlanVariables = {
+  id: ..., 
+  description: ..., 
+  totalAmount: ..., 
+  months: ..., 
+  startDate: ..., 
+};
+
+// Call the `updateInstallmentPlanRef()` function to get a reference to the mutation.
+const ref = updateInstallmentPlanRef(updateInstallmentPlanVars);
+// Variables can be defined inline as well.
+const ref = updateInstallmentPlanRef({ id: ..., description: ..., totalAmount: ..., months: ..., startDate: ..., });
+
+// You can also pass in a `DataConnect` instance to the `MutationRef` function.
+const dataConnect = getDataConnect(connectorConfig);
+const ref = updateInstallmentPlanRef(dataConnect, updateInstallmentPlanVars);
+
+// Call `executeMutation()` on the reference to execute the mutation.
+// You can use the `await` keyword to wait for the promise to resolve.
+const { data } = await executeMutation(ref);
+
+console.log(data.installmentPlan_updateMany);
+
+// Or, you can use the `Promise` API.
+executeMutation(ref).then((response) => {
+  const data = response.data;
+  console.log(data.installmentPlan_updateMany);
+});
+```
+
+## DeleteInstallmentPlan
+You can execute the `DeleteInstallmentPlan` mutation using the following action shortcut function, or by calling `executeMutation()` after calling the following `MutationRef` function, both of which are defined in [dataconnect-generated/index.d.ts](./index.d.ts):
+```typescript
+deleteInstallmentPlan(vars: DeleteInstallmentPlanVariables): MutationPromise<DeleteInstallmentPlanData, DeleteInstallmentPlanVariables>;
+
+interface DeleteInstallmentPlanRef {
+  ...
+  /* Allow users to create refs without passing in DataConnect */
+  (vars: DeleteInstallmentPlanVariables): MutationRef<DeleteInstallmentPlanData, DeleteInstallmentPlanVariables>;
+}
+export const deleteInstallmentPlanRef: DeleteInstallmentPlanRef;
+```
+You can also pass in a `DataConnect` instance to the action shortcut function or `MutationRef` function.
+```typescript
+deleteInstallmentPlan(dc: DataConnect, vars: DeleteInstallmentPlanVariables): MutationPromise<DeleteInstallmentPlanData, DeleteInstallmentPlanVariables>;
+
+interface DeleteInstallmentPlanRef {
+  ...
+  (dc: DataConnect, vars: DeleteInstallmentPlanVariables): MutationRef<DeleteInstallmentPlanData, DeleteInstallmentPlanVariables>;
+}
+export const deleteInstallmentPlanRef: DeleteInstallmentPlanRef;
+```
+
+If you need the name of the operation without creating a ref, you can retrieve the operation name by calling the `operationName` property on the deleteInstallmentPlanRef:
+```typescript
+const name = deleteInstallmentPlanRef.operationName;
+console.log(name);
+```
+
+### Variables
+The `DeleteInstallmentPlan` mutation requires an argument of type `DeleteInstallmentPlanVariables`, which is defined in [dataconnect-generated/index.d.ts](./index.d.ts). It has the following fields:
+
+```typescript
+export interface DeleteInstallmentPlanVariables {
+  id: UUIDString;
+}
+```
+### Return Type
+Recall that executing the `DeleteInstallmentPlan` mutation returns a `MutationPromise` that resolves to an object with a `data` property.
+
+The `data` property is an object of type `DeleteInstallmentPlanData`, which is defined in [dataconnect-generated/index.d.ts](./index.d.ts). It has the following fields:
+```typescript
+export interface DeleteInstallmentPlanData {
+  installmentPlan_deleteMany: number;
+}
+```
+### Using `DeleteInstallmentPlan`'s action shortcut function
+
+```typescript
+import { getDataConnect } from 'firebase/data-connect';
+import { connectorConfig, deleteInstallmentPlan, DeleteInstallmentPlanVariables } from '@pocketbook/dataconnect';
+
+// The `DeleteInstallmentPlan` mutation requires an argument of type `DeleteInstallmentPlanVariables`:
+const deleteInstallmentPlanVars: DeleteInstallmentPlanVariables = {
+  id: ..., 
+};
+
+// Call the `deleteInstallmentPlan()` function to execute the mutation.
+// You can use the `await` keyword to wait for the promise to resolve.
+const { data } = await deleteInstallmentPlan(deleteInstallmentPlanVars);
+// Variables can be defined inline as well.
+const { data } = await deleteInstallmentPlan({ id: ..., });
+
+// You can also pass in a `DataConnect` instance to the action shortcut function.
+const dataConnect = getDataConnect(connectorConfig);
+const { data } = await deleteInstallmentPlan(dataConnect, deleteInstallmentPlanVars);
+
+console.log(data.installmentPlan_deleteMany);
+
+// Or, you can use the `Promise` API.
+deleteInstallmentPlan(deleteInstallmentPlanVars).then((response) => {
+  const data = response.data;
+  console.log(data.installmentPlan_deleteMany);
+});
+```
+
+### Using `DeleteInstallmentPlan`'s `MutationRef` function
+
+```typescript
+import { getDataConnect, executeMutation } from 'firebase/data-connect';
+import { connectorConfig, deleteInstallmentPlanRef, DeleteInstallmentPlanVariables } from '@pocketbook/dataconnect';
+
+// The `DeleteInstallmentPlan` mutation requires an argument of type `DeleteInstallmentPlanVariables`:
+const deleteInstallmentPlanVars: DeleteInstallmentPlanVariables = {
+  id: ..., 
+};
+
+// Call the `deleteInstallmentPlanRef()` function to get a reference to the mutation.
+const ref = deleteInstallmentPlanRef(deleteInstallmentPlanVars);
+// Variables can be defined inline as well.
+const ref = deleteInstallmentPlanRef({ id: ..., });
+
+// You can also pass in a `DataConnect` instance to the `MutationRef` function.
+const dataConnect = getDataConnect(connectorConfig);
+const ref = deleteInstallmentPlanRef(dataConnect, deleteInstallmentPlanVars);
+
+// Call `executeMutation()` on the reference to execute the mutation.
+// You can use the `await` keyword to wait for the promise to resolve.
+const { data } = await executeMutation(ref);
+
+console.log(data.installmentPlan_deleteMany);
+
+// Or, you can use the `Promise` API.
+executeMutation(ref).then((response) => {
+  const data = response.data;
+  console.log(data.installmentPlan_deleteMany);
 });
 ```
 

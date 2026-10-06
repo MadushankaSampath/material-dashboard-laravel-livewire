@@ -78,3 +78,16 @@ type Entry @table {
   paidCard: PaymentMethod
   createdAt: Timestamp! @default(expr: "request.time")
 }
+
+# An instalment (EPP) plan on a credit card. The bank blocks the unbilled
+# part of the plan from the card's available credit; one instalment is
+# billed on each statement after the start date until it is paid off.
+type InstallmentPlan @table {
+  household: Household!
+  card: PaymentMethod!
+  description: String! @col(dataType: "varchar(80)")
+  totalAmount: Float!
+  months: Int!
+  startDate: Date!
+  createdAt: Timestamp! @default(expr: "request.time")
+}

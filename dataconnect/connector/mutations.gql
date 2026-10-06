@@ -306,3 +306,72 @@ mutation DeleteEntry($id: UUID!) @auth(level: USER) {
     }
   )
 }
+
+# ------------------------------------------------------- instalment plans
+
+mutation AddInstallmentPlan(
+  $cardId: UUID!
+  $description: String!
+  $totalAmount: Float!
+  $months: Int!
+  $startDate: Date!
+) @auth(level: USER) @transaction {
+  # The card must belong to the caller's household.
+  query @redact {
+    paymentMethods(
+      where: {
+        id: { eq: $cardId }
+        household: {
+          members_on_household: { exist: { userId: { eq_expr: "auth.uid" } } }
+        }
+      }
+      limit: 1
+    ) @check(expr: "this.size() == 1", message: "Card not found") {
+      householdId
+    }
+  }
+  installmentPlan_insert(
+    data: {
+      householdId_expr: "response.query.paymentMethods[0].householdId"
+      cardId: $cardId
+      description: $description
+      totalAmount: $totalAmount
+      months: $months
+      startDate: $startDate
+    }
+  )
+}
+
+mutation UpdateInstallmentPlan(
+  $id: UUID!
+  $description: String!
+  $totalAmount: Float!
+  $months: Int!
+  $startDate: Date!
+) @auth(level: USER) {
+  installmentPlan_updateMany(
+    where: {
+      id: { eq: $id }
+      household: {
+        members_on_household: { exist: { userId: { eq_expr: "auth.uid" } } }
+      }
+    }
+    data: {
+      description: $description
+      totalAmount: $totalAmount
+      months: $months
+      startDate: $startDate
+    }
+  )
+}
+
+mutation DeleteInstallmentPlan($id: UUID!) @auth(level: USER) {
+  installmentPlan_deleteMany(
+    where: {
+      id: { eq: $id }
+      household: {
+        members_on_household: { exist: { userId: { eq_expr: "auth.uid" } } }
+      }
+    }
+  )
+}
