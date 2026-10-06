@@ -2,7 +2,7 @@ import { queryRef, executeQuery, validateArgsWithOptions, mutationRef, executeMu
 
 export const connectorConfig = {
   connector: 'pocketbook',
-  service: 'pocketbook',
+  service: 'salary-manager-a366e-service',
   location: 'us-east4'
 };
 export const upsertMeRef = (dcOrVars, vars) => {
