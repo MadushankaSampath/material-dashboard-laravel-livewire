@@ -53,6 +53,9 @@ export function shortDate(s: string | null | undefined): string {
 
 export function errorMessage(e: unknown): string {
   const msg = e instanceof Error ? e.message : String(e)
+  // SQL Connect: "DataConnect error while performing request: [{"message":"Invite code not found (aborted)\n..."
+  const dc = msg.match(/"message":"(.*?)(?:\s*\(aborted\))?(?:\\n|")/)
+  if (dc) return dc[1]
   return msg.replace(/^Firebase:\s*/, '').replace(/\s*\(auth\/[\w-]+\)\.?$/, '')
 }
 
