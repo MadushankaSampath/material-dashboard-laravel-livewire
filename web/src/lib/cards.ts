@@ -65,7 +65,8 @@ export function cardStatuses(cards: PaymentMethod[], activity: CardActivityData 
     const paidSince = after(a?.payments) + after(a?.refunds)
     const limit = card.creditLimit ?? 0
     const balance = (card.lastStatementBalance ?? 0) + newCharges - paidSince
-    const blocked = card.installmentPlans.reduce((s, p) => s + planStatus(p, card.lastStatementDate).remaining, 0)
+    // `?? []` keeps the app working if the site is deployed before the SQL Connect connector.
+    const blocked = (card.installmentPlans ?? []).reduce((s, p) => s + planStatus(p, card.lastStatementDate).remaining, 0)
     return {
       card,
       limit,

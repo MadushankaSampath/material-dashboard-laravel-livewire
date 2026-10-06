@@ -22,7 +22,7 @@ export default function InstallmentPlans({ cardId }: { cardId: string }) {
   const [error, setError] = useState<string | null>(null)
 
   if (!card) return null
-  const plans = card.installmentPlans.map((p) => planStatus(p, card.lastStatementDate))
+  const plans = (card.installmentPlans ?? []).map((p) => planStatus(p, card.lastStatementDate))
   const active = plans.filter((p) => p.remaining > 0)
   const finished = plans.filter((p) => p.remaining <= 0)
 
