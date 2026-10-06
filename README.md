@@ -89,9 +89,8 @@ Prerequisites: Node 20+ and the Firebase CLI (`npm i -g firebase-tools`).
 4. Register a web app, then copy `web/.env.example` to `web/.env.local` and fill in its config values.
 
 ```bash
-cd web && npm install && cd ..
 firebase deploy --only dataconnect   # creates Cloud SQL instance, migrates schema, deploys connector
-firebase deploy --only hosting       # builds web/ and deploys
+firebase deploy --only hosting       # installs + builds web/ and deploys
 ```
 
 Also add your hosting domain under **Auth → Settings → Authorized domains**.
