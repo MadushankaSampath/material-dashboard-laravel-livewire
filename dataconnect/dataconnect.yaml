@@ -1,12 +1,12 @@
 specVersion: "v1"
 serviceId: "pocketbook"
-location: "us-central1"
+location: "us-east4"
 schema:
   source: "./schema"
   datasource:
     postgresql:
-      database: "pocketbook-db"
+      database: "salary-manager-a366e-database"
       cloudSql:
-        instanceId: "pocketbook-fdc"
+        instanceId: "salary-manager-a366e-instance"
         # schemaValidation: "COMPATIBLE"
 connectorDirs: ["./connector"]

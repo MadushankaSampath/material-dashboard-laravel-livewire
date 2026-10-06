@@ -3,7 +3,7 @@ const { queryRef, executeQuery, validateArgsWithOptions, mutationRef, executeMut
 const connectorConfig = {
   connector: 'pocketbook',
   service: 'pocketbook',
-  location: 'us-central1'
+  location: 'us-east4'
 };
 exports.connectorConfig = connectorConfig;
 
