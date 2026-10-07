@@ -9,6 +9,7 @@ import { errorMessage } from '../lib/format'
 import { PAYMENT_TYPES, paymentIcon, type PaymentMethod } from '../lib/types'
 import { useApp, useHousehold } from '../state/AppContext'
 import { useCardActivity } from '../state/useEntries'
+import { useBusy } from '../state/busy'
 
 type Editing = PaymentMethod | 'new' | null
 
@@ -88,7 +89,7 @@ function MethodForm({ method, onClose }: { method?: PaymentMethod; onClose: () =
   const [stmtBalance, setStmtBalance] = useState(method?.lastStatementBalance?.toString() ?? '')
   const [stmtDate, setStmtDate] = useState(method?.lastStatementDate ?? '')
   const [dueDate, setDueDate] = useState(method?.paymentDueDate ?? '')
-  const [busy, setBusy] = useState(false)
+  const [busy, setBusy] = useBusy()
   const [error, setError] = useState<string | null>(null)
   const isCard = type === 'CREDIT_CARD'
 

@@ -9,6 +9,7 @@ import {
 } from 'firebase/auth'
 import { auth } from '../firebase'
 import { errorMessage } from '../lib/format'
+import { useBusy } from '../state/busy'
 
 type Mode = 'signin' | 'signup' | 'reset'
 
@@ -38,7 +39,7 @@ export default function AuthPage() {
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [busy, setBusy] = useState(false)
+  const [busy, setBusy] = useBusy()
   const [error, setError] = useState<string | null>(null)
   const [info, setInfo] = useState<string | null>(null)
 

@@ -842,3 +842,45 @@ select:focus {
   color: var(--warn);
   margin: 0;
 }
+
+/* ---------- busy overlay ---------- */
+
+.busy-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: rgb(120 120 120 / 0.35);
+  cursor: progress;
+  animation: fade 0.15s ease-out;
+}
+.busy-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  overflow: hidden;
+  background: var(--primary-soft);
+}
+.busy-bar::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  width: 40%;
+  background: var(--primary);
+  animation: busy-slide 1s ease-in-out infinite;
+}
+@keyframes busy-slide {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(250%);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .busy-bar::before {
+    width: 100%;
+    animation: none;
+  }
+}

@@ -1,4 +1,5 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
+import BusyOverlay from './components/BusyOverlay'
 import Layout from './components/Layout'
 import AuthPage from './pages/AuthPage'
 import CardsPage from './pages/CardsPage'
@@ -51,6 +52,7 @@ export default function App() {
     <AppProvider>
       <BrowserRouter>
         <Gate />
+        <BusyOverlay />
       </BrowserRouter>
     </AppProvider>
   )

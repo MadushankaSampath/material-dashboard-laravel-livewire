@@ -6,6 +6,7 @@ import { errorMessage, isoDate, money, shortDate } from '../lib/format'
 import type { EntryKind, PaymentMethod } from '../lib/types'
 import { useApp, useHousehold } from '../state/AppContext'
 import { useCardActivity } from '../state/useEntries'
+import { useBusy } from '../state/busy'
 
 /** Categories offered for closing the gap; created on first use if the household lacks them. */
 const EXTRA_CHARGES = [
@@ -30,7 +31,7 @@ export default function StatementSheet({ card, onClose }: { card: PaymentMethod;
   const [balance, setBalance] = useState('')
   const [dueDate, setDueDate] = useState('')
   const [fixAmount, setFixAmount] = useState('')
-  const [busy, setBusy] = useState(false)
+  const [busy, setBusy] = useBusy()
   const [error, setError] = useState<string | null>(null)
   const [added, setAdded] = useState<string[]>([])
 

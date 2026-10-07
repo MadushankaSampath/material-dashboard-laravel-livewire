@@ -4,6 +4,7 @@ import { dc } from '../firebase'
 import { planStatus } from '../lib/cards'
 import { errorMessage, isoDate, money, shortDate } from '../lib/format'
 import { useApp, useHousehold } from '../state/AppContext'
+import { useBusy } from '../state/busy'
 
 /**
  * Instalment plans on one card. Rendered inside the card's edit sheet, which is
@@ -18,7 +19,7 @@ export default function InstallmentPlans({ cardId }: { cardId: string }) {
   const [total, setTotal] = useState('')
   const [months, setMonths] = useState('12')
   const [startDate, setStartDate] = useState(isoDate())
-  const [busy, setBusy] = useState(false)
+  const [busy, setBusy] = useBusy()
   const [error, setError] = useState<string | null>(null)
 
   if (!card) return null

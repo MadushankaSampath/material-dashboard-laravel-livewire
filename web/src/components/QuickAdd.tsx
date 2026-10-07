@@ -4,6 +4,7 @@ import { dc } from '../firebase'
 import { errorMessage, isoDate } from '../lib/format'
 import { CC_PAYMENT, paymentIcon, type Entry, type EntryKind } from '../lib/types'
 import { useApp, useHousehold } from '../state/AppContext'
+import { useBusy } from '../state/busy'
 
 const LAST_METHOD_KEY = 'pocketbook.lastMethod'
 
@@ -31,7 +32,7 @@ export default function QuickAdd({ entry: editing }: { entry?: Entry }) {
   const [paidCardId, setPaidCardId] = useState<string | null>(editing?.paidCard?.id ?? null)
   const [date, setDate] = useState(editing?.date ?? isoDate())
   const [note, setNote] = useState(editing?.note ?? '')
-  const [busy, setBusy] = useState(false)
+  const [busy, setBusy] = useBusy()
   const [error, setError] = useState<string | null>(null)
 
   const categories = useMemo(() => household.categories.filter((c) => c.kind === kind), [household.categories, kind])

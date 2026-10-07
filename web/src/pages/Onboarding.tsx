@@ -5,6 +5,7 @@ import { auth, dc } from '../firebase'
 import { errorMessage, newInviteCode } from '../lib/format'
 import { CURRENCIES } from '../lib/types'
 import { useApp } from '../state/AppContext'
+import { useBusy } from '../state/busy'
 
 export default function Onboarding() {
   const { home, refreshHome } = useApp()
@@ -12,7 +13,7 @@ export default function Onboarding() {
   const [name, setName] = useState(firstName ? `${firstName}'s family` : 'Our family')
   const [currency, setCurrency] = useState('LKR')
   const [code, setCode] = useState('')
-  const [busy, setBusy] = useState(false)
+  const [busy, setBusy] = useBusy()
   const [error, setError] = useState<string | null>(null)
 
   async function run(fn: () => Promise<unknown>) {

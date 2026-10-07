@@ -12,6 +12,7 @@ import { auth, dc } from '../firebase'
 import { errorMessage } from '../lib/format'
 import { CURRENCIES, type EntryKind } from '../lib/types'
 import { useApp, useHousehold } from '../state/AppContext'
+import { useBusy } from '../state/busy'
 
 export default function SettingsPage() {
   const { home, authUser, refreshHome } = useApp()
@@ -19,14 +20,18 @@ export default function SettingsPage() {
   const isOwner = home?.member?.role === 'OWNER'
   const [error, setError] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
+  const [, setBusy] = useBusy()
 
   async function run(fn: () => Promise<unknown>) {
     setError(null)
+    setBusy(true)
     try {
       await fn()
       await refreshHome()
     } catch (e) {
       setError(errorMessage(e))
+    } finally {
+      setBusy(false)
     }
   }
 
