@@ -889,3 +889,65 @@ select:focus {
   z-index: 100;
   pointer-events: none;
 }
+.cc.account {
+  background: linear-gradient(135deg, #1e3a8a, #0f766e);
+}
+
+/* ---------- expense highlights ---------- */
+
+.hl-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.hl {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  background: var(--bg);
+  border-radius: 12px;
+  padding: 10px 12px;
+  min-width: 0;
+}
+.hl strong {
+  font-size: 1.1rem;
+}
+.tiny {
+  font-size: 0.75rem;
+}
+.hl-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  text-align: left;
+  font: inherit;
+  color: var(--text);
+  background: var(--bg);
+  border: 0;
+  border-radius: 12px;
+  padding: 10px 12px;
+  cursor: pointer;
+}
+.hl-row .entry-icon {
+  background: var(--surface);
+}
+.hl-note {
+  margin: 0;
+}
+.hl-members {
+  gap: 8px;
+}
+.hl-member {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 4px;
+  font-size: 0.92rem;
+}
+.hl-member i {
+  grid-column: 1 / -1;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--primary);
+  opacity: 0.6;
+}

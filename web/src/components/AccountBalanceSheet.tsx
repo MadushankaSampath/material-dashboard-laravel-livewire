@@ -1,51 +1,57 @@
 import { useState, type FormEvent } from 'react'
 import { addEntry, updatePaymentMethod } from '@pocketbook/dataconnect'
 import { dc } from '../firebase'
-import { expectedStatement } from '../lib/cards'
+import { expectedBalance } from '../lib/accounts'
 import { ensureCategory } from '../lib/categories'
 import { errorMessage, isoDate, money, shortDate } from '../lib/format'
-import type { EntryKind, PaymentMethod } from '../lib/types'
+import type { Entry, EntryKind, PaymentMethod } from '../lib/types'
 import { useApp, useHousehold } from '../state/AppContext'
-import { useCardActivity } from '../state/useEntries'
 import { useBusy } from '../state/busy'
 
-/** Categories offered for closing the gap; created on first use if the household lacks them. */
-const EXTRA_CHARGES = [
-  { name: 'Interest', icon: '💸' },
-  { name: 'Bank Charges', icon: '🏦' },
-  { name: 'Other', icon: '📦' },
+/** Ways to explain a gap between the bank and the app. */
+const MORE_IN_BANK = [
+  { name: 'Interest', icon: '💹', kind: 'INCOME' as EntryKind },
+  { name: 'Other Income', icon: '💰', kind: 'INCOME' as EntryKind },
 ]
-const CREDITS = [{ name: 'Cashback', icon: '🎉' }]
+const LESS_IN_BANK = [
+  { name: 'Bank Charges', icon: '🏦', kind: 'EXPENSE' as EntryKind },
+  { name: 'Other', icon: '📦', kind: 'EXPENSE' as EntryKind },
+]
 
-/** Differences smaller than this are rounding, not a mismatch. */
 const TOLERANCE = 0.5
 
 /**
- * Enter a new monthly statement for a credit card. Compares the bank's balance
- * with what the app expects and helps record the difference (interest, bank
- * charges, cashback) so the two match before saving.
+ * Enter the real balance of a bank account / cash / wallet. Compares it with what
+ * the app expects from recorded entries, helps record the gap (interest, bank
+ * charges) and saves it as the new known balance.
  */
-export default function StatementSheet({ card, onClose }: { card: PaymentMethod; onClose: () => void }) {
+export default function AccountBalanceSheet({
+  account,
+  entries,
+  onClose,
+}: {
+  account: PaymentMethod
+  /** Entries since the account's last known balance date. */
+  entries: Entry[] | undefined
+  onClose: () => void
+}) {
   const { refreshHome, dataChanged } = useApp()
   const { categories, currency } = useHousehold()
   const [date, setDate] = useState(isoDate())
   const [balance, setBalance] = useState('')
-  const [dueDate, setDueDate] = useState('')
   const [fixAmount, setFixAmount] = useState('')
   const [busy, setBusy] = useBusy()
   const [error, setError] = useState<string | null>(null)
   const [added, setAdded] = useState<string[]>([])
 
-  const activity = useCardActivity(card.lastStatementDate ?? '1970-01-01', true)
-  const bank = balance.trim() === '' ? null : Number(balance.replace(',', '.'))
-  const check = bank !== null && !Number.isNaN(bank) ? expectedStatement(card, activity, date) : null
-  const diff = check && bank !== null ? Math.round((bank - check.expected) * 100) / 100 : 0
+  const actual = balance.trim() === '' ? null : Number(balance.replace(',', '.'))
+  const check = actual !== null && !Number.isNaN(actual) ? expectedBalance(account, entries ?? [], date) : null
+  const diff = check && actual !== null ? Math.round((actual - check.expected) * 100) / 100 : 0
   const mismatch = check !== null && Math.abs(diff) >= TOLERANCE
   const fixValue = fixAmount.trim() === '' ? Math.abs(diff) : Number(fixAmount.replace(',', '.'))
 
-  async function addAdjustment(name: string, icon: string) {
+  async function addAdjustment(name: string, icon: string, kind: EntryKind) {
     if (!(fixValue > 0)) return setError('Enter an amount')
-    const kind: EntryKind = diff > 0 ? 'EXPENSE' : 'INCOME'
     setBusy(true)
     setError(null)
     try {
@@ -54,10 +60,9 @@ export default function StatementSheet({ card, onClose }: { card: PaymentMethod;
         kind,
         amount: Math.round(fixValue * 100) / 100,
         date,
-        note: `${card.name} statement`,
+        note: `${account.name} balance`,
         categoryId: cat.id,
-        // On the card: an expense raises its balance, income (cashback) lowers it.
-        paymentMethodId: card.id,
+        paymentMethodId: account.id,
         paidCardId: null,
       })
       if (cat.created) await refreshHome()
@@ -73,22 +78,22 @@ export default function StatementSheet({ card, onClose }: { card: PaymentMethod;
 
   async function save(e: FormEvent) {
     e.preventDefault()
-    if (bank === null || Number.isNaN(bank)) return setError('Enter the statement balance')
-    if (card.lastStatementDate && date <= card.lastStatementDate)
-      return setError(`Statement date must be after the last one (${shortDate(card.lastStatementDate)})`)
-    if (mismatch && !confirm(`The app is still ${money(Math.abs(diff), currency)} off. Save the statement anyway?`))
+    if (actual === null || Number.isNaN(actual)) return setError('Enter the balance')
+    if (account.lastStatementDate && date < account.lastStatementDate)
+      return setError(`Date can't be before the last balance (${shortDate(account.lastStatementDate)})`)
+    if (mismatch && !confirm(`The app is still ${money(Math.abs(diff), currency)} off. Save the balance anyway?`))
       return
     setBusy(true)
     setError(null)
     try {
       await updatePaymentMethod(dc, {
-        id: card.id,
-        name: card.name,
-        type: card.type,
-        creditLimit: card.creditLimit ?? null,
-        lastStatementBalance: bank,
+        id: account.id,
+        name: account.name,
+        type: account.type,
+        creditLimit: null,
+        lastStatementBalance: actual,
         lastStatementDate: date,
-        paymentDueDate: dueDate || card.paymentDueDate || null,
+        paymentDueDate: null,
       })
       await refreshHome()
       dataChanged()
@@ -104,7 +109,7 @@ export default function StatementSheet({ card, onClose }: { card: PaymentMethod;
     <div className="sheet-backdrop" onClick={onClose}>
       <form className="sheet" onSubmit={save} onClick={(e) => e.stopPropagation()}>
         <div className="sheet-head">
-          <h2>New statement · {card.name}</h2>
+          <h2>Update balance · {account.name}</h2>
           <button type="button" className="icon-btn" aria-label="Close" onClick={onClose}>
             ✕
           </button>
@@ -112,66 +117,52 @@ export default function StatementSheet({ card, onClose }: { card: PaymentMethod;
 
         <div className="row">
           <label className="grow">
-            Statement date
+            Date
             <input type="date" value={date} onChange={(e) => setDate(e.target.value)} required />
           </label>
           <label className="grow">
-            Statement balance
+            Actual balance
             <input
               inputMode="decimal"
               value={balance}
               onChange={(e) => setBalance(e.target.value.replace(/[^\d.,-]/g, ''))}
-              placeholder="From the bank"
+              placeholder="From bank / app"
               autoFocus
             />
           </label>
         </div>
-        <label>
-          Payment due date
-          <input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
-        </label>
-
-        {!card.lastStatementDate && (
-          <p className="muted small">This is the first statement for this card, so there is nothing to compare yet.</p>
-        )}
 
         {check && (
           <div className="card-inset stack recon">
             <div className="recon-row">
-              <span>Previous statement ({shortDate(card.lastStatementDate)})</span>
+              <span>Balance on {shortDate(account.lastStatementDate)}</span>
               <span>{money(check.previous, currency)}</span>
             </div>
             <div className="recon-row">
-              <span>+ Purchases recorded</span>
-              <span>{money(check.purchases, currency)}</span>
+              <span>+ Money in recorded</span>
+              <span>{money(check.moneyIn, currency)}</span>
             </div>
-            {check.instalments > 0 && (
-              <div className="recon-row">
-                <span>+ Instalments billed</span>
-                <span>{money(check.instalments, currency)}</span>
-              </div>
-            )}
             <div className="recon-row">
-              <span>− Payments &amp; refunds recorded</span>
-              <span>{money(check.paymentsAndRefunds, currency)}</span>
+              <span>− Money out recorded</span>
+              <span>{money(check.moneyOut, currency)}</span>
             </div>
             <div className="recon-row total">
               <span>App expects</span>
               <span>{money(check.expected, currency)}</span>
             </div>
             <div className="recon-row total">
-              <span>Bank statement</span>
-              <span>{money(bank ?? 0, currency)}</span>
+              <span>Actual balance</span>
+              <span>{money(actual ?? 0, currency)}</span>
             </div>
 
             {!mismatch ? (
-              <p className="ok">✓ The app matches the bank statement.</p>
+              <p className="ok">✓ The app matches your balance.</p>
             ) : (
               <>
-                <p className={diff > 0 ? 'error' : 'warn'}>
+                <p className={diff > 0 ? 'warn' : 'error'}>
                   {diff > 0
-                    ? `The bank shows ${money(diff, currency)} more than the app. This is usually interest or bank charges — add it as an expense so they match.`
-                    : `The bank shows ${money(-diff, currency)} less than the app. This could be cashback, a refund, or a payment that wasn't recorded.`}
+                    ? `The account has ${money(diff, currency)} more than the app. Usually interest or income that wasn't recorded.`
+                    : `The account has ${money(-diff, currency)} less than the app. Usually bank charges or a payment that wasn't recorded.`}
                 </p>
                 <label>
                   Amount
@@ -183,23 +174,18 @@ export default function StatementSheet({ card, onClose }: { card: PaymentMethod;
                   />
                 </label>
                 <div className="chips">
-                  {(diff > 0 ? EXTRA_CHARGES : CREDITS).map((c) => (
+                  {(diff > 0 ? MORE_IN_BANK : LESS_IN_BANK).map((c) => (
                     <button
                       type="button"
                       key={c.name}
                       className="chip"
                       disabled={busy}
-                      onClick={() => addAdjustment(c.name, c.icon)}
+                      onClick={() => addAdjustment(c.name, c.icon, c.kind)}
                     >
                       + {c.icon} Add as {c.name}
                     </button>
                   ))}
                 </div>
-                {diff < 0 && (
-                  <p className="muted small">
-                    Missed a payment? Close this, add it with + as a “CC Payment”, then enter the statement again.
-                  </p>
-                )}
               </>
             )}
             {added.length > 0 && <p className="muted small">Added: {added.join(', ')}</p>}
@@ -209,7 +195,7 @@ export default function StatementSheet({ card, onClose }: { card: PaymentMethod;
         {error && <p className="error">{error}</p>}
 
         <button className="btn primary" disabled={busy}>
-          Save statement
+          Save balance
         </button>
       </form>
     </div>

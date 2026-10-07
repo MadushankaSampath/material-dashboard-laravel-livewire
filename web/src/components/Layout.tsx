@@ -5,7 +5,7 @@ import QuickAdd from './QuickAdd'
 const tabs = [
   { to: '/', label: 'Home', icon: '🏠' },
   { to: '/history', label: 'History', icon: '🧾' },
-  { to: '/cards', label: 'Cards', icon: '💳' },
+  { to: '/cards', label: 'Accounts', icon: '💳' },
   { to: '/settings', label: 'Family', icon: '👪' },
 ]
 

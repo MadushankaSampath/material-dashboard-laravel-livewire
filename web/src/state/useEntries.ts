@@ -41,9 +41,9 @@ function useCloudData<T>(cacheKey: string | null, fetch: () => Promise<T>) {
   return { data, error }
 }
 
-export function useEntries(from: string, to: string) {
-  const { data, error } = useCloudData(`entries:${from}:${to}`, () =>
-    listEntries(dc, { from, to }, { fetchPolicy: QueryFetchPolicy.SERVER_ONLY }).then(
+export function useEntries(from: string, to: string, enabled = true, limit = 500) {
+  const { data, error } = useCloudData(enabled ? `entries:${from}:${to}:${limit}` : null, () =>
+    listEntries(dc, { from, to, limit }, { fetchPolicy: QueryFetchPolicy.SERVER_ONLY }).then(
       ({ data }) => data.member?.household.entries ?? ([] as Entry[]),
     ),
   )

@@ -79,6 +79,20 @@ Every operation needs a signed-in user (`@auth(level: USER)`) and is scoped to t
 - **Removing a member** is limited to the household OWNER.
 - **Joining** needs the household's 8-character invite code.
 
+### Bank account balances
+
+Bank accounts, cash and e-wallets can track a balance. Enter the current balance and its date when adding or editing the account; this reuses the payment method's statement balance and date fields, so no schema change is needed.
+
+```
+balance = known balance + income received into it − expenses paid from it (after that date)
+```
+
+CC payments made from the account count as money out. **Update balance** compares the real balance with what the app expects. Any gap can be recorded as *Interest* or *Other Income* (when there's more than expected), or as *Bank Charges* or *Other* (when there's less). Saving makes it the new known balance.
+
+### Dashboard highlights
+
+Home shows the month's income, spending and what's left. It then shows expense highlights: this week's spending, the daily average, a comparison with the same days last month, a projection for the full month, the biggest expense, the top category's share, and who spent what when more than one person is in the household. Credit-card payments aren't counted as spending.
+
 ### Fast start
 
 The latest household, entries and card data are saved on the device (`localStorage`, one set per signed-in user). On reload the app shows this saved data straight away, while Firebase Auth restores the session. It then refreshes everything from SQL Connect in the background, showing a thin bar at the top. Signing out deletes the saved data from the device.
