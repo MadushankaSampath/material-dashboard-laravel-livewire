@@ -17,11 +17,11 @@ function rememberedMethod(): string | null {
 }
 
 /** Rendered only while open; remounted each time so the form starts fresh. */
-export default function QuickAdd({ entry: editing }: { entry?: Entry }) {
+export default function QuickAdd({ entry: editing, initialKind }: { entry?: Entry; initialKind?: EntryKind }) {
   const { closeQuickAdd, dataChanged } = useApp()
   const household = useHousehold()
 
-  const [kind, setKind] = useState<EntryKind>((editing?.kind as EntryKind) ?? 'EXPENSE')
+  const [kind, setKind] = useState<EntryKind>((editing?.kind as EntryKind) ?? initialKind ?? 'EXPENSE')
   const [amount, setAmount] = useState(editing ? String(editing.amount) : '')
   const [categoryId, setCategoryId] = useState<string | null>(editing?.category?.id ?? null)
   const [methodId, setMethodId] = useState<string | null>(() => {
@@ -101,7 +101,7 @@ export default function QuickAdd({ entry: editing }: { entry?: Entry }) {
     <div className="sheet-backdrop" onClick={closeQuickAdd}>
       <form className={`sheet ${kind.toLowerCase()}`} onSubmit={save} onClick={(e) => e.stopPropagation()}>
         <div className="sheet-head">
-          <div className="segmented">
+          <div className="segmented kind-switch">
             <button type="button" className={kind === 'EXPENSE' ? 'on' : ''} onClick={() => switchKind('EXPENSE')}>
               Expense
             </button>

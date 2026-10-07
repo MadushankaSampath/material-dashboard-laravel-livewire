@@ -5,11 +5,13 @@ import { getMyHome, upsertMe, type GetMyHomeData } from '@pocketbook/dataconnect
 import { auth, dc } from '../firebase'
 import { LAST_UID_KEY, clearUserCache, readCache, removeCache, userKey, writeCache } from '../lib/cache'
 import { trackLoad } from './busy'
-import type { Entry, Household } from '../lib/types'
+import type { Entry, EntryKind, Household } from '../lib/types'
 
 interface QuickAddState {
   open: boolean
   entry?: Entry
+  /** Mode for a new entry (ignored when editing). */
+  kind?: EntryKind
   seq: number
 }
 
@@ -27,7 +29,7 @@ interface AppState {
   dataVersion: number
   dataChanged: () => void
   quickAdd: QuickAddState
-  openQuickAdd: (entry?: Entry) => void
+  openQuickAdd: (entry?: Entry, kind?: EntryKind) => void
   closeQuickAdd: () => void
 }
 
@@ -106,7 +108,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       dataVersion,
       dataChanged: () => setDataVersion((v) => v + 1),
       quickAdd,
-      openQuickAdd: (entry) => setQuickAdd((q) => ({ open: true, entry, seq: q.seq + 1 })),
+      openQuickAdd: (entry, kind) => setQuickAdd((q) => ({ open: true, entry, kind, seq: q.seq + 1 })),
       closeQuickAdd: () => setQuickAdd((q) => ({ open: false, seq: q.seq })),
     }),
     [authUser, authReady, lastUid, home, homeLoading, homeError, refreshHome, dataVersion, quickAdd],

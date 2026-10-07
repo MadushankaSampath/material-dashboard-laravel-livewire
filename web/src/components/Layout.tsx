@@ -17,6 +17,9 @@ export default function Layout() {
         <Outlet />
       </main>
 
+      <button className="fab-income" aria-label="Add income" onClick={() => openQuickAdd(undefined, 'INCOME')}>
+        + Income
+      </button>
       <button className="fab" aria-label="Add entry" onClick={() => openQuickAdd()}>
         +
       </button>
@@ -30,7 +33,7 @@ export default function Layout() {
         ))}
       </nav>
 
-      {quickAdd.open && <QuickAdd key={quickAdd.seq} entry={quickAdd.entry} />}
+      {quickAdd.open && <QuickAdd key={quickAdd.seq} entry={quickAdd.entry} initialKind={quickAdd.kind} />}
     </div>
   )
 }
