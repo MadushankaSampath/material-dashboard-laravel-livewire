@@ -1,12 +1,18 @@
-import { useAnyBusy } from '../state/busy'
+import { useAnyBusy, useAnyLoading } from '../state/busy'
 
-/** Top progress line + greyed-out, click-blocking screen while an action is saving. */
+/**
+ * Saving: top progress line + greyed-out, click-blocking screen.
+ * Background refresh from the cloud: just the top line, the app stays usable.
+ */
 export default function BusyOverlay() {
   const busy = useAnyBusy()
-  if (!busy) return null
-  return (
-    <div className="busy-overlay" role="progressbar" aria-label="Saving…" aria-busy="true">
-      <div className="busy-bar" />
-    </div>
-  )
+  const loading = useAnyLoading()
+  if (busy)
+    return (
+      <div className="busy-overlay" role="progressbar" aria-label="Saving…" aria-busy="true">
+        <div className="busy-bar" />
+      </div>
+    )
+  if (loading) return <div className="busy-bar fixed" role="progressbar" aria-label="Loading…" />
+  return null
 }

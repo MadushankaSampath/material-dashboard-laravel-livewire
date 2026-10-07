@@ -884,3 +884,8 @@ select:focus {
     animation: none;
   }
 }
+.busy-bar.fixed {
+  position: fixed;
+  z-index: 100;
+  pointer-events: none;
+}

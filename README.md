@@ -79,6 +79,10 @@ Every operation needs a signed-in user (`@auth(level: USER)`) and is scoped to t
 - **Removing a member** is limited to the household OWNER.
 - **Joining** needs the household's 8-character invite code.
 
+### Fast start
+
+The latest household, entries and card data are saved on the device (`localStorage`, one set per signed-in user). On reload the app shows this saved data straight away, while Firebase Auth restores the session. It then refreshes everything from SQL Connect in the background, showing a thin bar at the top. Signing out deletes the saved data from the device.
+
 ### Family flow
 
 1. Person A signs up and chooses **Start a new household**. This seeds default categories and a Cash payment type.

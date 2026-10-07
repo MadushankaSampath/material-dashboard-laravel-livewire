@@ -19,6 +19,25 @@ export function useAnyBusy(): boolean {
   return useSyncExternalStore(subscribe, () => active > 0)
 }
 
+// Background loads (refreshing from the cloud) only show the top bar, never block the screen.
+let loading = 0
+
+export function useAnyLoading(): boolean {
+  return useSyncExternalStore(subscribe, () => loading > 0)
+}
+
+/** Shows the top loading bar until `promise` settles. */
+export async function trackLoad<T>(promise: Promise<T>): Promise<T> {
+  loading++
+  listeners.forEach((l) => l())
+  try {
+    return await promise
+  } finally {
+    loading--
+    listeners.forEach((l) => l())
+  }
+}
+
 /**
  * Drop-in replacement for `useState(false)` for a component's busy flag that also
  * drives the global overlay. Releases its hold if the component unmounts mid-action

@@ -2,41 +2,57 @@ import { useEffect, useState } from 'react'
 import { QueryFetchPolicy } from 'firebase/data-connect'
 import { cardActivity, listEntries, type CardActivityData } from '@pocketbook/dataconnect'
 import { dc } from '../firebase'
+import { readCache, userKey, writeCache } from '../lib/cache'
 import type { Entry } from '../lib/types'
 import { useApp } from './AppContext'
+import { trackLoad } from './busy'
 
-export function useEntries(from: string, to: string) {
-  const { dataVersion } = useApp()
-  const [entries, setEntries] = useState<Entry[]>()
+/**
+ * Shows the copy of a query's result saved on this device straight away, then
+ * fetches the latest from the cloud (with the top loading bar) and saves it.
+ * Refetches whenever `cacheKey` or the app's dataVersion changes.
+ */
+function useCloudData<T>(cacheKey: string | null, fetch: () => Promise<T>) {
+  const { dataVersion, uid } = useApp()
+  const key = uid && cacheKey ? userKey(uid, cacheKey) : null
+  const [fresh, setFresh] = useState<{ key: string; data: T }>()
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
+    if (!key) return
     let live = true
-    listEntries(dc, { from, to }, { fetchPolicy: QueryFetchPolicy.SERVER_ONLY })
-      .then(({ data }) => live && (setEntries(data.member?.household.entries ?? []), setError(null)))
+    trackLoad(fetch())
+      .then((data) => {
+        writeCache(key, data)
+        if (live) {
+          setFresh({ key, data })
+          setError(null)
+        }
+      })
       .catch((e: Error) => live && setError(e.message))
     return () => {
       live = false
     }
-  }, [from, to, dataVersion])
+    // `fetch` is recreated every render; `key` captures everything it depends on.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [key, dataVersion])
 
-  return { entries, error }
+  const data = key ? (fresh?.key === key ? fresh.data : readCache<T>(key)) : undefined
+  return { data, error }
+}
+
+export function useEntries(from: string, to: string) {
+  const { data, error } = useCloudData(`entries:${from}:${to}`, () =>
+    listEntries(dc, { from, to }, { fetchPolicy: QueryFetchPolicy.SERVER_ONLY }).then(
+      ({ data }) => data.member?.household.entries ?? ([] as Entry[]),
+    ),
+  )
+  return { entries: data, error }
 }
 
 export function useCardActivity(since: string, enabled: boolean) {
-  const { dataVersion } = useApp()
-  const [data, setData] = useState<CardActivityData>()
-
-  useEffect(() => {
-    if (!enabled) return
-    let live = true
-    cardActivity(dc, { since }, { fetchPolicy: QueryFetchPolicy.SERVER_ONLY })
-      .then(({ data }) => live && setData(data))
-      .catch(() => live && setData(undefined))
-    return () => {
-      live = false
-    }
-  }, [since, enabled, dataVersion])
-
+  const { data } = useCloudData<CardActivityData>(enabled ? `cards:${since}` : null, () =>
+    cardActivity(dc, { since }, { fetchPolicy: QueryFetchPolicy.SERVER_ONLY }).then(({ data }) => data),
+  )
   return data
 }

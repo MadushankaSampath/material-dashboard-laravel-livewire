@@ -12,8 +12,10 @@ import { AppProvider, useApp } from './state/AppContext'
 function Gate() {
   const { authReady, authUser, home, homeError, refreshHome } = useApp()
 
-  if (!authReady) return <Splash />
-  if (!authUser) return <AuthPage />
+  // With data saved on this device, show the app straight away; Firebase Auth
+  // restores the session and the cloud refresh runs in the background.
+  if (!authReady && !home) return <Splash />
+  if (authReady && !authUser) return <AuthPage />
   if (homeError && !home)
     return (
       <div className="page narrow stack center">
@@ -42,7 +44,10 @@ function Gate() {
 function Splash() {
   return (
     <div className="splash">
-      <div className="logo">₨</div>
+      <div className="center">
+        <div className="logo">₨</div>
+        <p className="muted small">Loading your data…</p>
+      </div>
     </div>
   )
 }

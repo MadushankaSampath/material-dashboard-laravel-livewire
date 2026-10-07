@@ -3,6 +3,8 @@ import { onAuthStateChanged, type User as FirebaseUser } from 'firebase/auth'
 import { QueryFetchPolicy } from 'firebase/data-connect'
 import { getMyHome, upsertMe, type GetMyHomeData } from '@pocketbook/dataconnect'
 import { auth, dc } from '../firebase'
+import { LAST_UID_KEY, clearUserCache, readCache, removeCache, userKey, writeCache } from '../lib/cache'
+import { trackLoad } from './busy'
 import type { Entry, Household } from '../lib/types'
 
 interface QuickAddState {
@@ -14,6 +16,8 @@ interface QuickAddState {
 interface AppState {
   authUser: FirebaseUser | null
   authReady: boolean
+  /** Signed-in user, or — until Firebase Auth restores the session — the last user on this device. */
+  uid: string | null
   home: GetMyHomeData | undefined
   household: Household | undefined
   homeLoading: boolean
@@ -29,10 +33,14 @@ interface AppState {
 
 const Ctx = createContext<AppState | null>(null)
 
+const homeKey = (uid: string) => userKey(uid, 'home')
+
 export function AppProvider({ children }: { children: ReactNode }) {
   const [authUser, setAuthUser] = useState<FirebaseUser | null>(null)
   const [authReady, setAuthReady] = useState(false)
-  const [home, setHome] = useState<GetMyHomeData>()
+  const [lastUid] = useState(() => readCache<string>(LAST_UID_KEY) ?? null)
+  // Start from the copy saved on this device so the app shows instantly; refreshHome() updates it from the cloud.
+  const [home, setHome] = useState<GetMyHomeData | undefined>(() => (lastUid ? readCache(homeKey(lastUid)) : undefined))
   const [homeLoading, setHomeLoading] = useState(false)
   const [homeError, setHomeError] = useState<string | null>(null)
   const [dataVersion, setDataVersion] = useState(0)
@@ -43,9 +51,18 @@ export function AppProvider({ children }: { children: ReactNode }) {
       onAuthStateChanged(auth, (u) => {
         setAuthUser(u)
         setAuthReady(true)
-        if (!u) setHome(undefined)
+        if (u) {
+          writeCache(LAST_UID_KEY, u.uid)
+          if (u.uid !== lastUid) setHome(readCache(homeKey(u.uid)))
+        } else {
+          // Signed out (or the session expired): don't leave anyone's data on the device.
+          const previous = readCache<string>(LAST_UID_KEY)
+          if (previous) clearUserCache(previous)
+          removeCache(LAST_UID_KEY)
+          setHome(undefined)
+        }
       }),
-    [],
+    [lastUid],
   )
 
   const refreshHome = useCallback(async () => {
@@ -53,7 +70,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setHomeLoading(true)
     setHomeError(null)
     try {
-      let { data } = await getMyHome(dc, { fetchPolicy: QueryFetchPolicy.SERVER_ONLY })
+      let { data } = await trackLoad(getMyHome(dc, { fetchPolicy: QueryFetchPolicy.SERVER_ONLY }))
       if (!data.user) {
         // First sign-in on this account: create the profile row.
         const u = auth.currentUser
@@ -64,6 +81,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         ;({ data } = await getMyHome(dc, { fetchPolicy: QueryFetchPolicy.SERVER_ONLY }))
       }
       setHome(data)
+      writeCache(homeKey(auth.currentUser.uid), data)
     } catch (e) {
       setHomeError(e instanceof Error ? e.message : String(e))
     } finally {
@@ -79,6 +97,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     () => ({
       authUser,
       authReady,
+      uid: authUser?.uid ?? (authReady ? null : lastUid),
       home,
       household: home?.member?.household,
       homeLoading,
@@ -90,7 +109,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       openQuickAdd: (entry) => setQuickAdd((q) => ({ open: true, entry, seq: q.seq + 1 })),
       closeQuickAdd: () => setQuickAdd((q) => ({ open: false, seq: q.seq })),
     }),
-    [authUser, authReady, home, homeLoading, homeError, refreshHome, dataVersion, quickAdd],
+    [authUser, authReady, lastUid, home, homeLoading, homeError, refreshHome, dataVersion, quickAdd],
   )
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>
