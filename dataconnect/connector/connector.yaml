@@ -1,0 +1,7 @@
+connectorId: pocketbook
+generate:
+  javascriptSdk:
+    outputDir: ../../web/src/dataconnect-generated
+    package: "@pocketbook/dataconnect"
+    packageJSONDir: ../../web
+    react: false

@@ -1,0 +1,12 @@
+specVersion: "v1"
+serviceId: "salary-manager-a366e-service"
+location: "us-east4"
+schema:
+  source: "./schema"
+  datasource:
+    postgresql:
+      database: "salary-manager-a366e-database"
+      cloudSql:
+        instanceId: "salary-manager-a366e-instance"
+        # schemaValidation: "COMPATIBLE"
+connectorDirs: ["./connector"]
