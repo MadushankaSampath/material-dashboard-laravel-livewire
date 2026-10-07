@@ -805,3 +805,40 @@ select:focus {
   font-size: 0.75rem;
   color: var(--muted);
 }
+
+/* ---------- statements ---------- */
+
+.cc-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.cc-stale {
+  margin-top: 8px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: rgb(255 255 255 / 0.18);
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+.recon {
+  gap: 6px;
+}
+.recon-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 0.92rem;
+}
+.recon-row.total {
+  font-weight: 700;
+  border-top: 1px solid var(--border);
+  padding-top: 6px;
+}
+.recon p {
+  margin: 4px 0 0;
+}
+.warn {
+  color: var(--warn);
+  margin: 0;
+}

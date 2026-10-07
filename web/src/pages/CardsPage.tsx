@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react'
 import { addPaymentMethod, archivePaymentMethod, updatePaymentMethod } from '@pocketbook/dataconnect'
 import CardTile from '../components/CardTile'
 import InstallmentPlans from '../components/InstallmentPlans'
+import StatementSheet from '../components/StatementSheet'
 import { dc } from '../firebase'
 import { activitySince, cardStatuses } from '../lib/cards'
 import { errorMessage } from '../lib/format'
@@ -14,6 +15,7 @@ type Editing = PaymentMethod | 'new' | null
 export default function CardsPage() {
   const household = useHousehold()
   const [editing, setEditing] = useState<Editing>(null)
+  const [statementFor, setStatementFor] = useState<PaymentMethod | null>(null)
   const cards = household.paymentMethods.filter((m) => m.type === 'CREDIT_CARD')
   const others = household.paymentMethods.filter((m) => m.type !== 'CREDIT_CARD')
   const activity = useCardActivity(activitySince(cards), cards.length > 0)
@@ -40,7 +42,12 @@ export default function CardsPage() {
 
       <div className="cc-grid">
         {statuses.map((s) => (
-          <CardTile key={s.card.id} status={s} currency={household.currency} onClick={() => setEditing(s.card)} />
+          <div key={s.card.id} className="cc-wrap">
+            <CardTile status={s} currency={household.currency} onClick={() => setEditing(s.card)} />
+            <button className="btn small" onClick={() => setStatementFor(s.card)}>
+              📄 Enter new statement
+            </button>
+          </div>
         ))}
       </div>
 
@@ -62,10 +69,11 @@ export default function CardsPage() {
 
       <p className="muted small">
         Card balance = last statement balance + purchases since the statement date − payments and refunds since.
-        Available = limit − balance − amounts blocked by instalment plans. Update the statement each month to keep it
-        accurate.
+        Available = limit − balance − amounts blocked by instalment plans. Enter each month&apos;s statement to keep it
+        accurate — the app compares it with what you recorded and helps you add any interest or bank charges.
       </p>
 
+      {statementFor && <StatementSheet card={statementFor} onClose={() => setStatementFor(null)} />}
       {editing && <MethodForm method={editing === 'new' ? undefined : editing} onClose={() => setEditing(null)} />}
     </div>
   )

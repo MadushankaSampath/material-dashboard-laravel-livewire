@@ -79,3 +79,57 @@ export function cardStatuses(cards: PaymentMethod[], activity: CardActivityData 
     }
   })
 }
+
+/** A statement older than this gets an "update statement" reminder. */
+export const STATEMENT_STALE_DAYS = 35
+
+/** Days since the card's last statement, or null when none has been entered. */
+export function statementAgeDays(card: PaymentMethod, today: string = isoDate()): number | null {
+  if (!card.lastStatementDate) return null
+  return Math.round((parseIsoDate(today).getTime() - parseIsoDate(card.lastStatementDate).getTime()) / 86_400_000)
+}
+
+export function statementIsStale(card: PaymentMethod): boolean {
+  const age = statementAgeDays(card)
+  return age === null || age > STATEMENT_STALE_DAYS
+}
+
+export interface StatementCheck {
+  previous: number
+  purchases: number
+  paymentsAndRefunds: number
+  /** Instalments the bank bills on this statement (not recorded as entries in the app). */
+  instalments: number
+  expected: number
+}
+
+/**
+ * What the app expects the bank's new statement balance to be: the previous
+ * statement balance plus card activity recorded after it, up to and including
+ * the new statement date, plus instalments that statement bills.
+ */
+export function expectedStatement(
+  card: PaymentMethod,
+  activity: CardActivityData | undefined,
+  newDate: string,
+): StatementCheck | null {
+  if (!card.lastStatementDate || newDate <= card.lastStatementDate) return null
+  const prev = card.lastStatementDate
+  const a = activity?.member?.household.cards.find((c) => c.id === card.id)
+  const inWindow = (rows: { amount: number; date: string }[] | undefined) =>
+    (rows ?? []).filter((r) => r.date > prev && r.date <= newDate).reduce((s, r) => s + r.amount, 0)
+  const purchases = inWindow(a?.charges)
+  const paymentsAndRefunds = inWindow(a?.payments) + inWindow(a?.refunds)
+  const instalments = (card.installmentPlans ?? []).reduce(
+    (s, p) => s + planStatus(p, prev).remaining - planStatus(p, newDate).remaining,
+    0,
+  )
+  const previous = card.lastStatementBalance ?? 0
+  return {
+    previous,
+    purchases,
+    paymentsAndRefunds,
+    instalments,
+    expected: previous + purchases - paymentsAndRefunds + instalments,
+  }
+}

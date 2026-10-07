@@ -54,6 +54,19 @@ available = limit − balance − blocked
 
 An instalment plan blocks its full amount when you buy. One monthly instalment is then billed on each statement after the purchase date (statements fall on the card's last statement day). Billed instalments are part of the statement balance you enter, so only the unbilled rest stays blocked. Don't also add the purchase as a card expense, or it will be counted twice.
 
+### Monthly statement check
+
+When a card's statement is more than 35 days old, the card shows an "update it" reminder. **Enter new statement** asks for the bank's balance, statement date and due date, and shows what the app expects:
+
+```
+expected = previous statement balance
+         + card purchases recorded after it (up to the new statement date)
+         + instalments that statement bills
+         − payments and refunds recorded in the same period
+```
+
+If the bank shows more, the difference is usually interest or bank charges. One tap adds it as an expense on the card, in an *Interest*, *Bank Charges* or *Other* category, dated on the statement day. If the bank shows less, it can be added as *Cashback*, or you can record a missed CC Payment. Once the two match, saving makes the bank's figure the new starting point.
+
 A **CC Payment** is an expense paid *from* a bank account or cash *to* a card. It reduces the card's balance. Monthly "Spent" totals leave it out so purchases aren't counted twice, and it is shown on its own line.
 
 ### Security

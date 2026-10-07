@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import CardTile from '../components/CardTile'
 import EntryList from '../components/EntryList'
 import { activitySince, cardStatuses } from '../lib/cards'
@@ -10,6 +10,7 @@ import { useCardActivity, useEntries } from '../state/useEntries'
 
 export default function HomePage() {
   const { home } = useApp()
+  const navigate = useNavigate()
   const household = useHousehold()
   const { currency } = household
   const now = new Date()
@@ -69,7 +70,7 @@ export default function HomePage() {
           </div>
           <div className="cc-strip">
             {statuses.map((s) => (
-              <CardTile key={s.card.id} status={s} currency={currency} />
+              <CardTile key={s.card.id} status={s} currency={currency} onClick={() => navigate('/cards')} />
             ))}
           </div>
         </section>

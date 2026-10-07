@@ -1,4 +1,4 @@
-import type { CardStatus } from '../lib/cards'
+import { statementAgeDays, statementIsStale, type CardStatus } from '../lib/cards'
 import { money, shortDate } from '../lib/format'
 
 export default function CardTile({ status, currency, onClick }: { status: CardStatus; currency: string; onClick?: () => void }) {
@@ -19,6 +19,14 @@ export default function CardTile({ status, currency, onClick }: { status: CardSt
         <span>Balance {money(balance, currency)}</span>
         <span>Statement {money(card.lastStatementBalance ?? 0, currency)}</span>
       </div>
+      {statementIsStale(card) && (
+        <div className="cc-stale">
+          📄{' '}
+          {statementAgeDays(card) === null
+            ? 'No statement yet · enter one'
+            : `Statement is ${statementAgeDays(card)} days old · update it`}
+        </div>
+      )}
       {blocked > 0 && (
         <div className="cc-foot">
           <span>Blocked for instalments {money(blocked, currency)}</span>
